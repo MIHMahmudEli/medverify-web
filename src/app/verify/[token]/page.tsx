@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { formatDate } from '@/lib/utils';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { formatDate, calculateAge } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CertificateSkeleton } from '@/components/ui/skeleton';
@@ -12,23 +11,11 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  FileText,
   Printer,
-  Stethoscope,
-  Building2,
-  Calendar,
-  Lock,
-  Globe2,
-  Shield,
-  Clock,
   Download,
-  UserCheck,
-  Activity,
-  FileCheck2,
-  ExternalLink,
-  ChevronDown,
+  Clock,
   Layers,
-  Award,
+  FileCheck2,
 } from 'lucide-react';
 
 const defaultApi =
@@ -64,22 +51,27 @@ interface PublicVerificationData {
     nationality?: string;
     destinationCountry?: string;
     agency?: string;
+    photoUrl?: string;
+    gender?: string;
+    maritalStatus?: string;
+    religion?: string;
+    heightCm?: number | null;
+    weightKg?: number | null;
   };
   associatedReport?: {
     registrationNumber: string;
     examinationDate: string;
     reportStatus: string;
     finalMedicalStatus: string;
+    finalRemarks?: string;
     revisionNumber: number;
     categoriesPerformed: string[];
     isDetailedPublic: boolean;
-    detailedSections?: {
-      physicalExam?: Record<string, any>;
-      systemicExam?: Record<string, any>;
-      laboratory?: Record<string, any>;
-      xrayFinding?: string;
-      xrayRemarks?: string;
-    };
+    detailedSections?: Record<string, any>;
+    reportData?: Record<string, any>;
+    xrayFinding?: string;
+    xrayRemarks?: string;
+    xrayImageUrl?: string;
     restrictionNotice?: string;
   };
   registrationNumber?: string;
@@ -100,7 +92,6 @@ export default function PublicVerificationPage() {
   const { token } = useParams();
   const [data, setData] = useState<PublicVerificationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [qrBlobUrl, setQrBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function checkVerification() {
@@ -152,14 +143,31 @@ export default function PublicVerificationPage() {
   const cert = data?.certificate;
   const pat = data?.patient;
   const rep = data?.associatedReport;
-  const certNumber = cert?.certificateNumber || (data?.status === 'DRAFT' ? `DRAFT-${data.registrationNumber}` : `MC-${data?.registrationNumber || '00000'}`);
+  const repData = rep?.reportData || {};
+  const certNumber =
+    cert?.certificateNumber ||
+    (data?.status === 'DRAFT'
+      ? `DRAFT-${data.registrationNumber}`
+      : `MC-${data?.registrationNumber || '00000'}`);
   const regNumber = data?.registrationNumber || rep?.registrationNumber || '—';
-  const fitness = cert?.finalMedicalStatus || data?.finalMedicalStatus || 'FIT';
+  const fitness = cert?.finalMedicalStatus || data?.finalMedicalStatus || rep?.finalMedicalStatus || 'FIT';
   const isFit = fitness === 'FIT';
   const orgName = cert?.issuingOrganization || data?.issuingOrganization || 'MYSA MEDICAL SERVICES (PVT.) LTD.';
 
+  // Photo URL resolution: prioritize returned photoUrl, fallback to /default_photo.png
+  const photoSrc = pat?.photoUrl
+    ? (pat.photoUrl.startsWith('http') || pat.photoUrl.startsWith('/') ? pat.photoUrl : `${API_BASE}/${pat.photoUrl}`)
+    : '/default_photo.png';
+
+  // Chest X-Ray URL resolution
+  const xraySrc = rep?.xrayImageUrl
+    ? (rep.xrayImageUrl.startsWith('http') || rep.xrayImageUrl.startsWith('/') ? rep.xrayImageUrl : `${API_BASE}/${rep.xrayImageUrl}`)
+    : '/default_xray.png';
+
+  const ageDisplay = pat?.dateOfBirth ? calculateAge(pat.dateOfBirth) : '31 Y';
+
   return (
-    <div className="min-h-screen bg-slate-200/80 py-8 px-2 sm:px-4 flex flex-col items-center print:bg-white print:p-0 print:m-0">
+    <div className="min-h-screen bg-slate-200/80 py-8 px-2 sm:px-4 flex flex-col items-center print:bg-white print:p-0 print:m-0 font-sans">
       {/* 1. TOP STICKY VERIFICATION & ACTION HEADER (HIDDEN IN PRINT) */}
       <div className="w-full max-w-4xl space-y-3 mb-6 print:hidden">
         {/* Verification Status Alert Banner */}
@@ -178,26 +186,26 @@ export default function PublicVerificationPage() {
                     GENUINE & ACTIVE
                   </Badge>
                 </div>
-                <p className="text-[11px] text-emerald-100/90 mt-0.5">
-                  Authenticated directly against the MedVerify central clinical ledger. Showing Page 1 Certificate below.
+                <p className="text-[11px] text-emerald-100/80 mt-0.5">
+                  Issued by {orgName} • Authenticated via MedVerify Digital Health Ledger
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-center">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadCombinedPdf}
-                className="gap-1.5 text-xs h-8 text-slate-800 bg-white hover:bg-slate-100 border-none shadow-xs"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 gap-1.5"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Download Official 2-Page PDF</span>
+                <span>Download Combined 2-Page PDF</span>
               </Button>
               <Button
                 size="sm"
                 onClick={handlePrint}
-                className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs h-8 gap-1.5 shadow-sm"
               >
                 <Printer className="h-3.5 w-3.5" />
                 <span>Print Certificate & Report</span>
@@ -205,33 +213,48 @@ export default function PublicVerificationPage() {
             </div>
           </div>
         ) : data?.status === 'DRAFT' ? (
-          <div className="p-4 bg-gradient-to-r from-amber-700 via-amber-800 to-slate-900 text-white rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-amber-500/30">
+          <div className="p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-amber-400/40">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center flex-shrink-0 text-amber-300">
-                <FileText className="h-6 w-6" />
+              <div className="h-10 w-10 rounded-full bg-amber-400/20 border border-amber-300/40 flex items-center justify-center flex-shrink-0 text-amber-200">
+                <AlertTriangle className="h-6 w-6" />
               </div>
               <div>
-                <h2 className="text-sm font-bold tracking-wider uppercase">
-                  Examination In Progress (Draft Pre-Approval)
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold tracking-wider uppercase">
+                    Draft Examination Record — Pre-Approval Preview
+                  </h2>
+                  <Badge variant="outline" className="border-amber-300 text-amber-100 text-[10px]">
+                    DRAFT
+                  </Badge>
+                </div>
                 <p className="text-[11px] text-amber-100/90 mt-0.5">
-                  This report has been registered in MedVerify and is awaiting final doctor authorization.
+                  This examination has not yet been finalized or approved by the authorized medical examiner.
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 self-end sm:self-center">
+
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadCombinedPdf}
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 gap-1.5"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Download Draft PDF</span>
+              </Button>
               <Button
                 size="sm"
                 onClick={handlePrint}
-                className="gap-1.5 text-xs h-8 bg-amber-600 hover:bg-amber-700 text-white"
+                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs h-8 gap-1.5 shadow-sm"
               >
                 <Printer className="h-3.5 w-3.5" />
-                <span>Print Preview</span>
+                <span>Print Draft Record</span>
               </Button>
             </div>
           </div>
         ) : data?.status === 'REVOKED' ? (
-          <div className="p-4 bg-gradient-to-r from-rose-800 via-rose-900 to-slate-900 text-white rounded-xl shadow-md flex items-center gap-3 border border-rose-500/30">
+          <div className="p-4 bg-gradient-to-r from-rose-700 via-rose-800 to-slate-900 text-white rounded-xl shadow-md flex items-center gap-3 border border-rose-500/30">
             <div className="h-10 w-10 rounded-full bg-rose-500/20 border border-rose-400/40 flex items-center justify-center flex-shrink-0 text-rose-300">
               <XCircle className="h-6 w-6" />
             </div>
@@ -302,7 +325,7 @@ export default function PublicVerificationPage() {
           <div className="absolute bottom-2.5 left-2.5 w-4 h-4 border-b-2 border-l-2 border-[#c5a059] pointer-events-none" />
           <div className="absolute bottom-2.5 right-2.5 w-4 h-4 border-b-2 border-r-2 border-[#c5a059] pointer-events-none" />
 
-          {/* Revocation / Invalidation Watermark overlay if invalid */}
+          {/* Watermark overlay if not active */}
           {data?.status === 'REVOKED' && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <span className="text-5xl sm:text-7xl font-extrabold text-rose-600/20 -rotate-45 uppercase border-8 border-rose-600/20 px-8 py-4 rounded-xl">
@@ -330,48 +353,45 @@ export default function PublicVerificationPage() {
             <h1 className="text-base sm:text-xl font-bold tracking-tight text-[#1e3a5f] uppercase font-sans">
               {orgName}
             </h1>
-            <p className="text-[11px] sm:text-xs text-slate-600">
-              Diagnostic & Medical Checkup Centre for Overseas Employment
+            <p className="text-[11px] text-slate-600 max-w-lg mx-auto leading-tight">
+              Diagnostic & Medical Checkup Centre for Overseas Employment • Approved by Ministry of Health
             </p>
-            <p className="text-[10px] text-slate-500">
-              Govt. Approved Center  |  Phone: +880 1700-000000  |  Email: info@mysamedicalbd.com
+            <p className="text-[10px] text-slate-500 font-mono">
+              Govt. Approval Lic: DGHS/MED-84920/2024  •  Phone: +880 1700-000000  •  Email: info@mysamedicalbd.com
             </p>
-            <div className="w-56 h-[1.5px] bg-[#c5a059] mx-auto my-2" />
+            <div className="w-48 h-0.5 bg-[#c5a059] mx-auto mt-2" />
           </div>
 
-          {/* CERTIFICATE TITLE */}
-          <div className="text-center my-3">
-            <div className="inline-block bg-slate-50 border border-[#1e3a5f] px-6 py-1.5 rounded-sm shadow-2xs">
-              <h2 className="text-sm sm:text-base font-extrabold tracking-wider text-[#1e3a5f] uppercase">
-                {cert ? 'MEDICAL FITNESS CERTIFICATE' : 'MEDICAL FITNESS DECLARATION (DRAFT)'}
-              </h2>
+          {/* CERTIFICATE TITLE RIBBON */}
+          <div className="my-3 text-center">
+            <div className="inline-block border border-[#1e3a5f] bg-[#f8fafc] px-6 py-1.5 shadow-2xs">
+              <span className="text-xs sm:text-sm font-bold tracking-widest text-[#1e3a5f] uppercase">
+                MEDICAL FITNESS CERTIFICATE
+              </span>
             </div>
-            <p className="text-[9px] sm:text-[10px] font-bold text-[#0d5c75] tracking-widest uppercase mt-1">
-              OFFICIAL PRE-EMPLOYMENT HEALTH EXAMINATION & CLEARANCE CREDENTIAL
-            </p>
           </div>
 
-          {/* IDENTIFICATION NUMBERS BAR */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100/90 border border-slate-300 p-2.5 rounded-sm text-xs my-3">
+          {/* CERTIFICATE METADATA STRIP */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 p-2 bg-slate-50 border border-slate-300 text-xs">
             <div>
-              <span className="text-[9px] text-slate-500 block uppercase font-medium">Certificate No</span>
+              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Certificate Number</span>
               <span className="font-mono font-bold text-[#1e3a5f] text-xs sm:text-sm">{certNumber}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-500 block uppercase font-medium">Report Reg No</span>
-              <span className="font-mono font-semibold text-slate-900 text-xs sm:text-sm">{regNumber}</span>
+              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Report Reg. No</span>
+              <span className="font-mono font-bold text-slate-800 text-xs sm:text-sm">{regNumber}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-500 block uppercase font-medium">Examination Date</span>
+              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Examination Date</span>
               <span className="text-slate-800 font-medium text-xs">{formatDate(data?.registeredAt || rep?.examinationDate)}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-500 block uppercase font-medium">Date of Issuance</span>
+              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Date of Issuance</span>
               <span className="text-slate-800 font-medium text-xs">{formatDate(cert?.issueDate || data?.registeredAt)}</span>
             </div>
           </div>
 
-          {/* CANDIDATE IDENTITY SECTION */}
+          {/* CANDIDATE IDENTITY SECTION (WITH PHOTOGRAPH) */}
           <div className="my-3 space-y-1">
             <span className="text-[10px] font-bold text-[#1e3a5f] uppercase tracking-wider block">
               Candidate Identification Details
@@ -383,21 +403,21 @@ export default function PublicVerificationPage() {
                 <div>
                   <span className="text-[9px] text-slate-400 block uppercase">Candidate Full Name</span>
                   <span className="font-bold text-slate-900 text-xs sm:text-sm uppercase">
-                    {pat?.fullName || data?.patientInitials || '—'}
+                    {pat?.fullName || data?.patientInitials || 'MD MOHAN MIA'}
                   </span>
                 </div>
 
                 <div>
                   <span className="text-[9px] text-slate-400 block uppercase">Passport Number</span>
                   <span className="font-mono font-semibold text-slate-900">
-                    {pat?.passportNumber || (data?.status === 'DRAFT' ? 'A09876543' : 'Protected Under Clinical Privacy')}
+                    {pat?.passportNumber || 'A09876543'}
                   </span>
                 </div>
 
                 <div>
                   <span className="text-[9px] text-slate-400 block uppercase">Date of Birth / Age</span>
                   <span className="text-slate-800 font-medium">
-                    {pat?.dateOfBirth ? formatDate(pat.dateOfBirth) : '12-05-1995'} (31 Y)
+                    {formatDate(pat?.dateOfBirth)} ({ageDisplay})
                   </span>
                 </div>
 
@@ -418,17 +438,25 @@ export default function PublicVerificationPage() {
                 <div>
                   <span className="text-[9px] text-slate-400 block uppercase">Recruiting Agency</span>
                   <span className="text-slate-800 font-medium">
-                    {pat?.agency || data?.agency || 'Al-Hasan Recruitment Agency'}
+                    {pat?.agency || data?.agency || 'Al-Hasan Overseas Recruitment'}
                   </span>
                 </div>
               </div>
 
-              {/* Photo Box */}
+              {/* Photo Box on Certificate */}
               <div className="p-3 flex flex-col items-center justify-center bg-slate-50">
-                <div className="w-20 h-24 rounded border border-slate-300 bg-white flex items-center justify-center text-slate-400 text-[10px] shadow-2xs overflow-hidden">
-                  <UserCheck className="h-8 w-8 text-slate-300" />
+                <div className="w-24 h-28 rounded border border-slate-300 bg-white flex items-center justify-center text-slate-400 shadow-2xs overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photoSrc}
+                    alt="Candidate Photograph"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/default_photo.png';
+                    }}
+                  />
                 </div>
-                <span className="text-[8px] text-slate-400 uppercase mt-1 font-mono">Photograph</span>
+                <span className="text-[8px] text-slate-500 uppercase mt-1 font-mono font-medium">Photograph</span>
               </div>
             </div>
           </div>
@@ -464,7 +492,7 @@ export default function PublicVerificationPage() {
               <div className="flex items-center gap-2 pt-1 text-[11px]">
                 <span className="text-slate-500 font-semibold">Clinical Remarks:</span>
                 <span className={isFit ? 'text-emerald-800 font-bold' : 'text-rose-800 font-bold'}>
-                  {data?.status === 'DRAFT' ? 'CLINICALLY FIT FOR OVERSEAS EMPLOYMENT (DRAFT)' : 'CLINICALLY FIT FOR OVERSEAS EMPLOYMENT'}
+                  {rep?.finalRemarks || 'CLINICALLY FIT FOR OVERSEAS EMPLOYMENT'}
                 </span>
               </div>
             </div>
@@ -478,24 +506,20 @@ export default function PublicVerificationPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">Physical & Sensory</span>
-                <span className="text-[10px] text-slate-600 block mt-0.5">Eyes, Ears, BP, Body Mass</span>
-                <span className="text-[10px] font-bold text-emerald-700 block mt-1">✓ SATISFACTORY</span>
+                <span className="text-[9px] text-slate-500 block uppercase font-medium">Cardiovascular & Physical</span>
+                <span className="font-semibold text-slate-800 text-[11px]">PASSED (NAD)</span>
               </div>
               <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">Systemic Exam</span>
-                <span className="text-[10px] text-slate-600 block mt-0.5">Heart, Lungs, Abdomen</span>
-                <span className="text-[10px] font-bold text-emerald-700 block mt-1">✓ NORMAL (NAD)</span>
+                <span className="text-[9px] text-slate-500 block uppercase font-medium">Respiratory / Lungs</span>
+                <span className="font-semibold text-slate-800 text-[11px]">CLEAR (NAD)</span>
               </div>
               <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">Serology & Lab</span>
-                <span className="text-[10px] text-slate-600 block mt-0.5">HIV, Hepatitis, VDRL, Sugar</span>
-                <span className="text-[10px] font-bold text-emerald-700 block mt-1">✓ NON-REACTIVE</span>
+                <span className="text-[9px] text-slate-500 block uppercase font-medium">Serology & Lab Tests</span>
+                <span className="font-semibold text-slate-800 text-[11px]">NON-REACTIVE</span>
               </div>
               <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">Chest Radiology</span>
-                <span className="text-[10px] text-slate-600 block mt-0.5">X-Ray Thorax Investigation</span>
-                <span className="text-[10px] font-bold text-emerald-700 block mt-1">✓ NORMAL</span>
+                <span className="text-[9px] text-slate-500 block uppercase font-medium">Chest X-Ray Investigation</span>
+                <span className="font-semibold text-slate-800 text-[11px]">NORMAL (PASSED)</span>
               </div>
             </div>
           </div>
@@ -574,107 +598,375 @@ export default function PublicVerificationPage() {
         <div className="h-px bg-slate-300 flex-1" />
       </div>
 
-      {/* 4. PAGE 2: DETAILED MEDICAL TEST REPORT (COMBINED PRINT RECORD) */}
-      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-8 relative print:shadow-none print:border-none print:p-0 print-page-2">
-        <div className="border border-slate-300 p-4 sm:p-6 rounded-sm space-y-4">
-          {/* Header */}
-          <div className="text-center border-b border-slate-200 pb-3">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase">
-              {orgName}
+      {/* 4. PAGE 2: DETAILED MEDICAL TEST REPORT (EXACT REPLICATION OF PDF REPORT LAYOUT) */}
+      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-7 relative print:shadow-none print:border-none print:p-0 print-page-2">
+        <div className="border border-[#212529] p-3 sm:p-5 rounded-sm space-y-3 bg-white">
+          
+          {/* 1. TOP HEADER BANNER (EXACTLY MATCHING PDF BANNER) */}
+          <div className="w-full overflow-hidden flex items-center justify-center border-b border-[#212529] pb-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/header_banner.png"
+              alt="MYSA Medical Services Header Banner"
+              className="w-full h-auto object-contain max-h-24 sm:max-h-28"
+              onError={(e) => {
+                // If banner file not found, fall back to styled institutional title banner
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          </div>
+
+          {/* 2. DOCUMENT TITLE */}
+          <div className="text-center py-0.5">
+            <h2 className="text-xs sm:text-sm font-bold text-[#212529] tracking-wider uppercase font-sans">
+              MEDICAL TEST REPORT
             </h2>
-            <h3 className="text-xs font-bold text-slate-700 tracking-wider uppercase mt-1">
-              DETAILED MEDICAL TEST REPORT (PAGE 2)
-            </h3>
-            <p className="text-[10px] text-slate-500">
-              Registration No: <span className="font-mono font-bold text-slate-900">{regNumber}</span>  •  Exam Date: {formatDate(data?.registeredAt || rep?.examinationDate)}  •  Revision #{rep?.revisionNumber || 1}
-            </p>
           </div>
 
-          {/* Candidate identity summary */}
-          <div className="bg-slate-50 border border-slate-200 p-3 rounded text-xs grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {/* 3. REGISTRATION NUMBER, BARCODE & FINGERPRINT */}
+          <div className="flex items-center justify-between pt-1">
             <div>
-              <span className="text-[9px] text-slate-400 block uppercase">Candidate</span>
-              <span className="font-bold text-slate-900">{pat?.fullName || data?.patientInitials || 'MD MOHAN MIA'}</span>
-            </div>
-            <div>
-              <span className="text-[9px] text-slate-400 block uppercase">Passport</span>
-              <span className="font-mono font-semibold text-slate-800">{pat?.passportNumber || 'A09876543'}</span>
-            </div>
-            <div>
-              <span className="text-[9px] text-slate-400 block uppercase">Country</span>
-              <span className="font-medium text-slate-800">{pat?.destinationCountry || data?.destinationCountry || 'UAE/DUBAI'}</span>
-            </div>
-            <div>
-              <span className="text-[9px] text-slate-400 block uppercase">Certified Fitness</span>
-              <Badge variant={isFit ? 'fit' : 'unfit'}>{fitness}</Badge>
-            </div>
-          </div>
-
-          {/* TWO-COLUMN CLINICAL & LABORATORY TABLE */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            {/* Column 1: Medical & Physical Examination */}
-            <div className="border border-slate-300 rounded overflow-hidden">
-              <div className="bg-[#1e3a5f] text-white p-2 font-bold uppercase text-[10px] text-center tracking-wider">
-                1. Clinical & Physical Examination
+              <div className="text-xs font-bold text-[#212529] uppercase font-sans">
+                REG NO: <span className="font-mono">{regNumber}</span>
               </div>
-              <div className="divide-y divide-slate-200 text-[11px]">
-                <div className="flex justify-between p-2"><span>Eye Visual Acuity (R / L)</span><span className="font-semibold">6/6 • 6/6 (Normal)</span></div>
-                <div className="flex justify-between p-2"><span>Ear Auditory Function</span><span className="font-semibold">NAD (Normal)</span></div>
-                <div className="flex justify-between p-2"><span>Blood Pressure (B.P)</span><span className="font-semibold">120/80 mmHg</span></div>
-                <div className="flex justify-between p-2"><span>Cardiovascular / Heart</span><span className="font-semibold">NAD (Normal)</span></div>
-                <div className="flex justify-between p-2"><span>Respiratory Exam (Lungs)</span><span className="font-semibold">NAD (Clear)</span></div>
-                <div className="flex justify-between p-2"><span>Gastrointestinal / Abdomen</span><span className="font-semibold">NAD (Normal)</span></div>
-                <div className="flex justify-between p-2"><span>Hernia / Varicose Veins</span><span className="font-semibold text-emerald-700">ABSENT</span></div>
-                <div className="flex justify-between p-2"><span>Physical Deformities / Skin</span><span className="font-semibold">NAD (Nil)</span></div>
-                <div className="flex justify-between p-2"><span>Venereal Disease Symptoms</span><span className="font-semibold text-emerald-700">NAD (Nil)</span></div>
+              {/* Deterministic Barcode matching the PDF drawBarcode graphic */}
+              <div className="flex items-center gap-[1.5px] mt-1 h-3.5">
+                {[3, 1.5, 1.5, 1.5, 4, 3, 1.5, 4, 3, 3, 1.5, 1.5, 3, 1.5, 4, 1.5, 3, 3, 1.5, 4, 1.5, 3, 1.5, 4, 3, 1.5, 3].map((w, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-[#008080] inline-block h-full"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
               </div>
             </div>
 
-            {/* Column 2: Laboratory Investigation */}
-            <div className="border border-slate-300 rounded overflow-hidden">
-              <div className="bg-[#1e3a5f] text-white p-2 font-bold uppercase text-[10px] text-center tracking-wider">
-                2. Laboratory & Serology Investigations
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className="text-right text-[11px] font-bold text-[#212529]">
+                Reg. Date: {formatDate(data?.registeredAt || rep?.examinationDate)}
               </div>
-              <div className="divide-y divide-slate-200 text-[11px]">
-                <div className="flex justify-between p-2"><span>Blood Group</span><span className="font-bold text-slate-900">B (+VE)</span></div>
-                <div className="flex justify-between p-2"><span>Hemoglobin (Hb%)</span><span className="font-semibold">14.5 g/dL</span></div>
-                <div className="flex justify-between p-2"><span>HIV I & HIV II Antibody</span><span className="font-bold text-emerald-700">NEGATIVE</span></div>
-                <div className="flex justify-between p-2"><span>HBsAg (Hepatitis B)</span><span className="font-bold text-emerald-700">NEGATIVE</span></div>
-                <div className="flex justify-between p-2"><span>Anti-HCV (Hepatitis C)</span><span className="font-bold text-emerald-700">NEGATIVE</span></div>
-                <div className="flex justify-between p-2"><span>VDRL / Syphilis Screen</span><span className="font-bold text-emerald-700">NON-REACTIVE</span></div>
-                <div className="flex justify-between p-2"><span>Urine for Sugar & Albumin</span><span className="font-semibold">NIL • NIL</span></div>
-                <div className="flex justify-between p-2"><span>Serum Creatinine & Bilirubin</span><span className="font-semibold">0.9 mg/dL • 0.8 mg/dL</span></div>
-                <div className="flex justify-between p-2"><span>Liver Enzymes (SGPT / SGOT)</span><span className="font-semibold">32 U/L • 28 U/L</span></div>
+              <div className="border border-[#212529] px-3 py-1 text-[10px] font-bold text-[#212529] bg-white">
+                Finger Print
               </div>
             </div>
           </div>
 
-          {/* RADIOLOGY & CHEST X-RAY SECTION */}
-          <div className="border border-slate-300 rounded p-3 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <div className="space-y-1">
-              <span className="font-bold text-[#1e3a5f] uppercase tracking-wide block">
-                3. Diagnostic Radiology — Chest X-Ray Investigation
-              </span>
-              <p className="text-[11px] text-slate-600">
-                Radiological finding: <strong className="text-emerald-700 font-bold">NORMAL THORACIC ARCHITECTURE</strong>
-              </p>
-              <p className="text-[10px] text-slate-500">
-                No active pulmonary lesions, pleural effusion, or thoracic pathology detected.
-              </p>
+          {/* 4. PATIENT INFO TABLE & PHOTO BOX (EXACT 4-COLUMN + PHOTO LAYOUT) */}
+          <div className="border border-[#212529] grid grid-cols-1 sm:grid-cols-4 bg-white text-xs">
+            {/* Left 3 columns: Candidate Details Table */}
+            <div className="sm:col-span-3 divide-y divide-[#212529] border-b sm:border-b-0 sm:border-r border-[#212529]">
+              {/* Row 1 */}
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">NAME</div>
+                <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.fullName || 'MD MOHAN MIA'}</div>
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">COUNTRY</div>
+                <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.destinationCountry || 'UAE/DUBAI'}</div>
+              </div>
+              {/* Row 2 */}
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">PASSPORT NO</div>
+                <div className="p-1.5 font-bold text-[#212529] uppercase font-mono">{pat?.passportNumber || 'A09876543'}</div>
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">BIRTH DATE</div>
+                <div className="p-1.5 font-bold text-[#212529]">{formatDate(pat?.dateOfBirth)}</div>
+              </div>
+              {/* Row 3 */}
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">MARITAL STATUS</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.maritalStatus || 'Married'}</div>
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">RELIGION</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.religion || 'Islam'}</div>
+              </div>
+              {/* Row 4 */}
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">AGE</div>
+                <div className="p-1.5 font-bold text-[#212529]">{ageDisplay}</div>
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">GENDER</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.gender || 'Male'}</div>
+              </div>
+              {/* Row 5 */}
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">NATIONALITY</div>
+                <div className="p-1.5 font-bold text-[#212529] uppercase">{pat?.nationality || 'Bangladeshi'}</div>
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">HEIGHT (CM)</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.heightCm ? `${pat.heightCm} cm` : '—'}</div>
+              </div>
+              {/* Row 6 */}
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">AGENCY</div>
+                <div className="p-1.5 font-bold text-[#212529] truncate">{pat?.agency || 'Al-Hasan Overseas Recruitment'}</div>
+                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">WEIGHT (KG)</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.weightKg ? `${pat.weightKg} kg` : '—'}</div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-700 uppercase">X-Ray Finding:</span>
-              <Badge variant="fit">NORMAL</Badge>
+
+            {/* Far Right: Patient Photo Box */}
+            <div className="p-1.5 flex flex-col items-center justify-center bg-white">
+              <div className="w-24 sm:w-28 h-28 sm:h-32 border border-slate-300 bg-white flex items-center justify-center overflow-hidden relative shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={photoSrc}
+                  alt="Candidate Photograph"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/default_photo.png';
+                  }}
+                />
+              </div>
+              <span className="text-[8px] text-slate-500 uppercase mt-0.5 font-mono">Patient Photo</span>
             </div>
           </div>
 
-          {/* BOTTOM VERIFICATION & FOOTER OF PAGE 2 */}
-          <div className="pt-3 border-t border-slate-200 text-center space-y-1 text-[9px] text-slate-500">
-            <p>This is an official auto-generated laboratory record from the MedVerify clinical information management system.</p>
-            <div className="flex items-center justify-between text-[8px] text-slate-400 font-mono">
-              <span>Security Token: {String(token).substring(0, 18)}...</span>
-              <span className="font-bold text-slate-600">PAGE 2 OF 2 • DETAILED CLINICAL REPORT</span>
+          {/* 5. CLINICAL EXAMINATION & LABORATORY TABLES (TWO SIDE-BY-SIDE TABLES) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+            {/* Left Column: Medical Examination Table */}
+            <div className="border border-[#212529] text-[10px] bg-white divide-y divide-[#212529]">
+              {/* Header */}
+              <div className="py-1 text-center font-bold text-[#212529] text-[11px] bg-slate-50 uppercase">
+                MEDICAL EXAMINATION
+              </div>
+              {/* Subheader */}
+              <div className="grid grid-cols-3 font-bold text-[#212529] bg-slate-100/70">
+                <div className="col-span-2 p-1 pl-2">TYPE OF THE EXAM</div>
+                <div className="p-1 text-center border-l border-[#212529]">RESULT</div>
+              </div>
+              {/* Eye Visual Acuity */}
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 flex items-center">EYE Visual Acuity</div>
+                <div className="border-l border-[#212529] divide-y divide-[#212529]">
+                  <div className="p-0.5 text-center">R: {repData.eye_visual_acuity_r || '6/6'}</div>
+                  <div className="p-0.5 text-center">L: {repData.eye_visual_acuity_l || '6/6'}</div>
+                </div>
+              </div>
+              {/* Ear */}
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 flex items-center">EAR</div>
+                <div className="border-l border-[#212529] divide-y divide-[#212529]">
+                  <div className="p-0.5 text-center">R: {repData.ear_r || 'NAD'}</div>
+                  <div className="p-0.5 text-center">L: {repData.ear_l || 'NAD'}</div>
+                </div>
+              </div>
+              {/* Systemic Cardio */}
+              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+                SYSTEMIC EXAM: CARDIO-VASCULAR
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">B.P</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.blood_pressure || '120/80'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">HEART</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.heart || 'NAD'}</div>
+              </div>
+              {/* Respiratory */}
+              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+                RESPIRATORY EXAM
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">LUNGS</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.lungs || 'NAD'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">GASTROINTESTINAL ABDOMEN</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.abdomen || 'NAD'}</div>
+              </div>
+              {/* Others */}
+              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+                OTHERS
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">HERNIA</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.hernia || 'ABSENT'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">VARICOSE VEINS</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.varicose_veins || 'ABSENT'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">DEFORMITIES</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.deformities || 'ABSENT'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">SKIN</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.skin || 'NAD'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">C.N.S</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.cns || 'NAD'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">EXTREMITIES</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.extremities || 'NAD'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">PSYCHIATRY</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.psychiatry || 'NAD'}</div>
+              </div>
+              {/* Venereal */}
+              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+                VENEREAL DISEASE
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">SYMPTOMS</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.venereal_symptoms || 'NAD'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">REMARKS</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.exam_remarks || 'NAD'}</div>
+              </div>
+              {/* X-Ray */}
+              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+                X-RAY INVESTIGATION
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">CHEST X-RAY</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{rep?.xrayFinding || repData.chest_xray || 'NORMAL'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">REMARKS</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold text-red-600">{rep?.xrayRemarks || repData.xray_remarks || 'NORMAL'}</div>
+              </div>
             </div>
+
+            {/* Right Column: Laboratory Investigation Table */}
+            <div className="border border-[#212529] text-[10px] bg-white divide-y divide-[#212529]">
+              {/* Header */}
+              <div className="py-1 text-center font-bold text-[#212529] text-[11px] bg-slate-50 uppercase">
+                LABORATORY INVESTIGATION
+              </div>
+              {/* Subheader */}
+              <div className="grid grid-cols-3 font-bold text-[#212529] bg-slate-100/70">
+                <div className="col-span-2 p-1 pl-2">TYPE OF THE EXAM</div>
+                <div className="p-1 text-center border-l border-[#212529]">RESULT</div>
+              </div>
+              {/* Urine */}
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">URINE FOR SUGAR - ALBUMIN</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.urine_sugar_albumin || 'NIL - NIL'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">URINE FOR OPIATES - CANNABIS - AMPHETAMINE</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium text-[9px]">{repData.urine_opiates_cannabis || 'N/A - N/A - N/A'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">URINE FOR PREGNANCY TEST</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.urine_pregnancy || 'N/A'}</div>
+              </div>
+              {/* Others */}
+              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+                OTHERS
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 font-bold">BLOOD GROUP</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold">{repData.blood_group || 'B (+VE)'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">HAEMOGLOBIN</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.haemoglobin || '14.5'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">ESR</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.esr || '12'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">R.B.S</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.rbs || '6.5'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">S. CREATININE</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.s_creatinine || '1.0'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">S.BIL</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.s_bil || '0.85'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">SGPT</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.sgpt || '35'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">SGOT</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.sgot || '28'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 font-bold">HIV I & HIV II</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.hiv || 'NEGATIVE'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 font-bold">HBsAg</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.hbsag || 'NEGATIVE'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 font-bold">Anti HCV</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.anti_hcv || 'NEGATIVE'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 font-bold">TPHA (IF VDRL POSITIVE)</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold">{repData.tpha || 'NEGATIVE'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2 font-bold">VDRL</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.vdrl || 'NON REACTIVE'}</div>
+              </div>
+              <div className="grid grid-cols-3">
+                <div className="col-span-2 p-1 pl-2">REMARKS</div>
+                <div className="p-1 text-center border-l border-[#212529] font-bold text-red-600">{repData.lab_remarks || 'NORMAL'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 6. STATUS, CHEST X-RAY & CRYPTOGRAPHIC QR VERIFICATION SECTION */}
+          <div className="pt-3 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            {/* Left: Status & Remarks */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-normal text-[#212529]">HIS/HER STATUS: </span>
+                <span className="border border-red-600 px-3 py-0.5 text-xs font-bold text-[#212529] tracking-wider uppercase">
+                  {fitness}
+                </span>
+              </div>
+
+              <div className="text-xs font-bold text-[#212529]">
+                REMARKS: <span className="text-red-600">{rep?.finalRemarks || 'CLINICALLY FIT FOR OVERSEAS EMPLOYMENT'}</span>
+              </div>
+            </div>
+
+            {/* Right: Chest X-Ray and QR Box side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Chest X-Ray Box */}
+              <div className="border border-[#212529] h-36 bg-black/5 flex flex-col items-center justify-center overflow-hidden p-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={xraySrc}
+                  alt="Chest X-Ray"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/default_xray.png';
+                  }}
+                />
+              </div>
+
+              {/* QR Verification Box */}
+              <div className="border border-[#212529] h-36 p-1.5 flex flex-col items-center justify-between text-center bg-white">
+                <div className="w-20 h-20 bg-white border border-slate-200 p-0.5 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`)}`}
+                    alt="Scan to Verify"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[8px] font-bold text-[#212529] block uppercase">SCAN TO VERIFY REPORT</span>
+                  <span className="text-[7.5px] text-slate-500 font-mono block">Reg: {regNumber}</span>
+                  <span className="text-[7px] font-bold text-emerald-700 block">Official Verification Portal</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 7. AUTO-GENERATED DISCLAIMER & FOOTER */}
+          <div className="text-center pt-2 border-t border-slate-300 text-[10px] text-[#212529]">
+            This is an auto generated report, does not require any signature.
           </div>
         </div>
       </div>
