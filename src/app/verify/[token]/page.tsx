@@ -22,7 +22,10 @@ import {
   Shield,
 } from 'lucide-react';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/+$/, '');
+const defaultApi = process.env.NODE_ENV === 'production'
+  ? 'https://medverify-api-y6am.onrender.com'
+  : 'http://localhost:4000';
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || defaultApi).replace(/\/+$/, '');
 
 interface VerificationResult {
   verified: boolean;
@@ -48,7 +51,13 @@ export default function PublicVerificationPage() {
   useEffect(() => {
     async function checkVerification() {
       try {
-        const res = await fetch(`${API_BASE}/api/v1/public/verify/${token}`);
+        let res: Response;
+        try {
+          res = await fetch(`${API_BASE}/api/v1/public/verify/${token}`);
+          if (!res.ok && res.status >= 500) throw new Error('Direct fetch failed');
+        } catch {
+          res = await fetch(`/api/v1/public/verify/${token}`);
+        }
         const result = await res.json();
         setData(result);
       } catch (err) {

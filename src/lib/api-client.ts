@@ -1,4 +1,7 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/+$/, '');
+const defaultApi = process.env.NODE_ENV === 'production'
+  ? 'https://medverify-api-y6am.onrender.com'
+  : 'http://localhost:4000';
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || defaultApi).replace(/\/+$/, '');
 
 export interface ApiError {
   statusCode: number;
