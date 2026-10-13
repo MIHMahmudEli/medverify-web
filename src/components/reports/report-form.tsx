@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { AlertCircle, ArrowLeft, Save, Send, Eye } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Save, Send, Eye, Upload, Trash2, Loader2, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
 interface ReportFormProps {
@@ -77,9 +77,52 @@ export function ReportForm({
 
   const [xrayFinding, setXrayFinding] = useState(initialReport?.xrayFinding || 'NORMAL');
   const [xrayRemarks, setXrayRemarks] = useState(initialReport?.xrayRemarks || 'NORMAL');
+  const [xrayImageUrl, setXrayImageUrl] = useState<string>(initialReport?.xrayImageUrl || '');
+  const [xrayPreview, setXrayPreview] = useState<string>(initialReport?.xrayImageUrl || '');
+  const [uploadingXray, setUploadingXray] = useState(false);
+  const [uploadXrayError, setUploadXrayError] = useState<string | null>(null);
+  const xrayFileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleXrayFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadXrayError(null);
+    setUploadingXray(true);
+
+    const localUrl = URL.createObjectURL(file);
+    setXrayPreview(localUrl);
+
+    try {
+      const res = await api.uploadFile(file);
+      setXrayImageUrl(res.url);
+      setXrayPreview(res.url);
+    } catch (err: any) {
+      setUploadXrayError(err.message || 'Failed to upload X-ray image');
+    } finally {
+      setUploadingXray(false);
+    }
+  };
+
+  const handleRemoveXray = () => {
+    setXrayImageUrl('');
+    setXrayPreview('');
+    if (xrayFileInputRef.current) {
+      xrayFileInputRef.current.value = '';
+    }
+  };
+
+  const getFullImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    return `${apiBase}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -122,6 +165,7 @@ export function ReportForm({
           reportData,
           xrayFinding,
           xrayRemarks,
+          xrayImageUrl: xrayImageUrl || undefined,
         };
         const created = await api.post<any>('/reports', payload);
         reportId = created.id;
@@ -131,6 +175,7 @@ export function ReportForm({
           reportData,
           xrayFinding,
           xrayRemarks,
+          xrayImageUrl: xrayImageUrl || undefined,
         };
         await api.patch(`/reports/${reportId}`, payload);
       }
@@ -445,27 +490,113 @@ export function ReportForm({
             </div>
 
             {/* X-Ray Section */}
-            <div className="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-2 mt-2">
-              <span className="text-[11px] font-bold text-slate-800 uppercase block">
-                X-Ray Investigation
-              </span>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="p-3 rounded bg-slate-50 border border-slate-200 space-y-3 mt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-800 uppercase block">
+                  Radiological Examination (Chest X-Ray)
+                </span>
+                {xrayImageUrl && (
+                  <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Image Attached
+                  </span>
+                )}
+              </div>
+
+              {/* X-Ray Radiograph Upload Card */}
+              <div className="p-2.5 bg-white rounded border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="relative w-20 h-24 rounded border border-slate-300 bg-slate-950 overflow-hidden flex items-center justify-center shadow-inner flex-shrink-0">
+                  {xrayPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={getFullImageUrl(xrayPreview)}
+                      alt="Chest X-Ray Preview"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-center p-1.5 text-slate-500">
+                      <ImageIcon className="w-6 h-6 mx-auto mb-1 stroke-[1.5]" />
+                      <span className="text-[8px] uppercase tracking-wider font-semibold block text-slate-400">
+                        X-RAY
+                      </span>
+                    </div>
+                  )}
+
+                  {uploadingXray && (
+                    <div className="absolute inset-0 bg-slate-950/70 flex items-center justify-center text-white">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={xrayFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleXrayFileChange}
+                      className="hidden"
+                      id="report-xray-input"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingXray}
+                      onClick={() => xrayFileInputRef.current?.click()}
+                      className="gap-1.5 text-xs h-7"
+                    >
+                      <Upload className="h-3 w-3" />
+                      <span>{xrayPreview ? 'Change X-Ray' : 'Upload Chest X-Ray'}</span>
+                    </Button>
+
+                    {xrayPreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={uploadingXray}
+                        onClick={handleRemoveXray}
+                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs h-7 gap-1"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Remove</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  <p className="text-[10px] text-slate-500">
+                    Standard PA view chest radiograph. Embedded directly into verified PDF certificate.
+                  </p>
+
+                  {uploadXrayError && (
+                    <p className="text-[10px] text-rose-600 flex items-center gap-1 font-medium">
+                      <AlertCircle className="h-3 w-3" />
+                      {uploadXrayError}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-500 block">Chest X-Ray</span>
+                  <span className="text-[10px] font-semibold text-slate-600 block">Chest X-Ray Findings</span>
                   <select
                     value={xrayFinding}
                     onChange={(e) => setXrayFinding(e.target.value)}
                     className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
                   >
                     <option value="NORMAL">NORMAL</option>
+                    <option value="NAD">NAD (No Abnormality Detected)</option>
                     <option value="ABNORMAL">ABNORMAL</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-500 block">X-Ray Remarks</span>
+                  <span className="text-[10px] font-semibold text-slate-600 block">X-Ray Remarks</span>
                   <Input
                     value={xrayRemarks}
                     onChange={(e) => setXrayRemarks(e.target.value)}
+                    className="h-8 text-xs font-semibold text-rose-700"
                   />
                 </div>
               </div>

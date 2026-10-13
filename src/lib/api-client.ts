@@ -120,6 +120,12 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
 
+  async uploadFile(file: File): Promise<{ filename: string; originalName: string; size: number; mimetype: string; url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.post<{ filename: string; originalName: string; size: number; mimetype: string; url: string }>('/uploads', formData);
+  }
+
   async downloadBlob(endpoint: string): Promise<Blob> {
     const token = this.getToken();
     const headers: Record<string, string> = {};

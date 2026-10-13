@@ -302,30 +302,42 @@ export default function ReportDetailPage() {
 
       {/* Patient Banner */}
       <Card className="bg-white">
-        <CardContent className="p-3.5 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 text-xs">
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Name</span>
-            <span className="font-semibold text-slate-900">{p?.fullName}</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Passport</span>
-            <span className="font-mono font-semibold text-slate-800">{p?.passportNumber}</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Country</span>
-            <span className="text-slate-800">{p?.country}</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Age / Gender</span>
-            <span className="text-slate-800">{calculateAge(p?.dateOfBirth)} • {p?.gender}</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Agency</span>
-            <span className="text-slate-800">{p?.agency || 'DIRECT'}</span>
-          </div>
-          <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-semibold">Height / Weight</span>
-            <span className="text-slate-800">{p?.heightCm || '—'} cm / {p?.weightKg || '—'} kg</span>
+        <CardContent className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-xs">
+          {p?.photoUrl && (
+            <div className="w-16 h-20 rounded border border-slate-300 bg-slate-50 overflow-hidden flex-shrink-0 shadow-xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={p.photoUrl.startsWith('http') ? p.photoUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${p.photoUrl.startsWith('/') ? '' : '/'}${p.photoUrl}`}
+                alt={p.fullName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 text-xs flex-1">
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Name</span>
+              <span className="font-semibold text-slate-900">{p?.fullName}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Passport</span>
+              <span className="font-mono font-semibold text-slate-800">{p?.passportNumber}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Country</span>
+              <span className="text-slate-800">{p?.country}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Age / Gender</span>
+              <span className="text-slate-800">{calculateAge(p?.dateOfBirth)} • {p?.gender}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Agency</span>
+              <span className="text-slate-800">{p?.agency || 'DIRECT'}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Height / Weight</span>
+              <span className="text-slate-800">{p?.heightCm || '—'} cm / {p?.weightKg || '—'} kg</span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -424,13 +436,33 @@ export default function ReportDetailPage() {
                     X-Ray Investigation
                   </TableCell>
                 </TableRow>
+                {report.xrayImageUrl && (
+                  <TableRow>
+                    <TableCell colSpan={2} className="p-3 bg-slate-950/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-20 rounded border border-slate-300 bg-slate-950 overflow-hidden flex items-center justify-center shadow-xs">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={report.xrayImageUrl.startsWith('http') ? report.xrayImageUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${report.xrayImageUrl.startsWith('/') ? '' : '/'}${report.xrayImageUrl}`}
+                            alt="Chest Radiograph"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="text-xs space-y-0.5">
+                          <span className="font-semibold text-slate-900 block">Chest Radiograph Attached</span>
+                          <span className="text-[11px] text-slate-500 block">PA view chest radiograph embedded into official certificate</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
                 <TableRow>
                   <TableCell>Chest X-Ray</TableCell>
                   <TableCell className="text-right font-semibold">{report.xrayFinding || 'NORMAL'}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>X-Ray Remarks</TableCell>
-                  <TableCell className="text-right font-semibold">{report.xrayRemarks || 'NORMAL'}</TableCell>
+                  <TableCell className="text-right font-semibold text-rose-600">{report.xrayRemarks || 'NORMAL'}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

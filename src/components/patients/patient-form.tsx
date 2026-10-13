@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { AlertCircle, ArrowLeft, Save } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Save, Upload, Camera, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface PatientFormProps {
@@ -22,6 +23,8 @@ export function PatientForm({
   description,
 }: PatientFormProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     fullName: initialData?.fullName || '',
     passportNumber: initialData?.passportNumber || '',
@@ -38,12 +41,56 @@ export function PatientForm({
     email: initialData?.email || '',
   });
 
+  const [photoUrl, setPhotoUrl] = useState<string>(initialData?.photoUrl || '');
+  const [photoPreview, setPhotoPreview] = useState<string>(initialData?.photoUrl || '');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setUploadingPhoto(true);
+
+    // Instant local preview
+    const localUrl = URL.createObjectURL(file);
+    setPhotoPreview(localUrl);
+
+    try {
+      const res = await api.uploadFile(file);
+      setPhotoUrl(res.url);
+      setPhotoPreview(res.url);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl('');
+    setPhotoPreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getFullImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    return `${apiBase}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,6 +101,7 @@ export function PatientForm({
     try {
       const payload: any = {
         ...formData,
+        photoUrl: photoUrl || undefined,
         heightCm: formData.heightCm ? parseFloat(formData.heightCm) : undefined,
         weightKg: formData.weightKg ? parseFloat(formData.weightKg) : undefined,
       };
@@ -90,6 +138,95 @@ export function PatientForm({
           )}
 
           <form id="patient-form" onSubmit={handleSubmit} className="space-y-4">
+            {/* Patient Photo Upload Section */}
+            <div className="p-3.5 rounded border border-slate-200 bg-slate-50/70 space-y-2.5">
+              <span className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                Patient Photograph
+              </span>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* Photo Preview Container */}
+                <div className="relative w-24 h-28 rounded border border-slate-300 bg-white overflow-hidden flex items-center justify-center shadow-xs flex-shrink-0">
+                  {photoPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={getFullImageUrl(photoPreview)}
+                      alt="Patient preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center p-2 text-slate-400">
+                      <Camera className="w-8 h-8 mx-auto mb-1 stroke-[1.5]" />
+                      <span className="text-[9px] uppercase font-medium">No Photo</span>
+                    </div>
+                  )}
+
+                  {uploadingPhoto && (
+                    <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload Action & Guidance */}
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="patient-photo-input"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingPhoto}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="gap-1.5 text-xs"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>{photoPreview ? 'Change Photo' : 'Upload Patient Photo'}</span>
+                    </Button>
+
+                    {photoPreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={uploadingPhoto}
+                        onClick={handleRemovePhoto}
+                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs gap-1"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Remove</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  <p className="text-[11px] text-slate-500">
+                    Standard medical passport portrait. Accepts JPG, PNG, WebP up to 10MB. This image appears on the official medical test certificate.
+                  </p>
+
+                  {uploadError && (
+                    <p className="text-[11px] text-rose-600 flex items-center gap-1 font-medium">
+                      <AlertCircle className="h-3 w-3" />
+                      {uploadError}
+                    </p>
+                  )}
+
+                  {photoUrl && !uploadingPhoto && !uploadError && (
+                    <p className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Photo attached to patient record
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Primary Identification */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div className="space-y-1">
@@ -115,7 +252,7 @@ export function PatientForm({
                   placeholder="e.g. A00678003"
                   value={formData.passportNumber}
                   onChange={handleChange}
-                  className="font-mono"
+                  className="font-mono uppercase"
                 />
               </div>
             </div>
@@ -203,7 +340,7 @@ export function PatientForm({
                 </label>
                 <Input
                   name="religion"
-                  placeholder="e.g. Islam, Hinduism"
+                  placeholder="e.g. Islam, Christianity, Hinduism"
                   value={formData.religion}
                   onChange={handleChange}
                 />
@@ -220,7 +357,7 @@ export function PatientForm({
                   type="number"
                   step="0.1"
                   name="heightCm"
-                  placeholder="e.g. 172"
+                  placeholder="e.g. 165"
                   value={formData.heightCm}
                   onChange={handleChange}
                 />
@@ -292,7 +429,7 @@ export function PatientForm({
           <Button
             type="submit"
             form="patient-form"
-            disabled={loading}
+            disabled={loading || uploadingPhoto}
             size="sm"
             className="gap-1.5"
           >

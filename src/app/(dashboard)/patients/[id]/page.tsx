@@ -113,7 +113,18 @@ export default function PatientDetailPage() {
             Patient Information Overview
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <CardContent className="flex flex-col sm:flex-row gap-5 text-xs">
+          {patient.photoUrl && (
+            <div className="w-24 h-28 rounded border border-slate-300 bg-slate-50 overflow-hidden flex-shrink-0 shadow-xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={patient.photoUrl.startsWith('http') ? patient.photoUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${patient.photoUrl.startsWith('/') ? '' : '/'}${patient.photoUrl}`}
+                alt={patient.fullName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs flex-1">
           <div>
             <span className="text-slate-400 block text-[11px]">Full Name</span>
             <span className="font-semibold text-slate-900">{patient.fullName}</span>
@@ -162,6 +173,7 @@ export default function PatientDetailPage() {
             <span className="text-slate-800">
               {patient.phone || '—'} • {patient.email || '—'}
             </span>
+          </div>
           </div>
         </CardContent>
       </Card>
