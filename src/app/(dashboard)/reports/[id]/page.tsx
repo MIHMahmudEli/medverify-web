@@ -31,6 +31,7 @@ import {
   XCircle,
   ExternalLink,
   ShieldAlert,
+  Printer,
 } from 'lucide-react';
 
 export default function ReportDetailPage() {
@@ -54,6 +55,7 @@ export default function ReportDetailPage() {
 
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const [revokeReason, setRevokeReason] = useState('');
+  const [certificate, setCertificate] = useState<any>(null);
 
   const loadReport = async () => {
     try {
@@ -61,6 +63,13 @@ export default function ReportDetailPage() {
       setReport(res);
       setFinalizeStatus(res.finalMedicalStatus !== 'NOT_EVALUATED' ? res.finalMedicalStatus : 'FIT');
       setFinalizeRemarks(res.finalRemarks || 'NORMAL');
+
+      try {
+        const cert = await api.get<any>(`/reports/${id}/certificate`);
+        setCertificate(cert);
+      } catch {
+        setCertificate(null);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load report');
     } finally {
@@ -147,13 +156,26 @@ export default function ReportDetailPage() {
     }
   };
 
+  const handleIssueCertificate = async () => {
+    setActionLoading(true);
+    setError(null);
+    try {
+      await api.post(`/reports/${id}/certificate`, {});
+      await loadReport();
+    } catch (err: any) {
+      setError(err.message || 'Failed to issue official certificate');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDownloadPdf = async () => {
     try {
-      const blob = await api.downloadBlob(`/reports/${id}/pdf`);
+      const blob = await api.downloadBlob(`/reports/${id}/print-pdf`);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `MedVerify_${report.registrationNumber}_${report.patient?.passportNumber}.pdf`;
+      a.download = `MedVerify_Certificate_and_Report_${report.registrationNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -293,9 +315,22 @@ export default function ReportDetailPage() {
             </Button>
           )}
 
+          {canApprove && report.status === 'FINALIZED' && !certificate && (
+            <Button
+              variant="default"
+              size="sm"
+              disabled={actionLoading}
+              onClick={handleIssueCertificate}
+              className="gap-1.5 bg-teal-700 hover:bg-teal-800 text-white"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Issue Official Certificate</span>
+            </Button>
+          )}
+
           <Link href={`/reports/${report.id}/preview`}>
             <Button variant="outline" size="sm" className="gap-1.5">
-              <span>Preview PDF</span>
+              <span>Preview & Print (2-Page)</span>
             </Button>
           </Link>
 
@@ -306,7 +341,7 @@ export default function ReportDetailPage() {
             className="gap-1.5"
           >
             <FileDown className="h-3.5 w-3.5" />
-            <span>Download PDF</span>
+            <span>Download 2-Page PDF</span>
           </Button>
         </div>
       </div>
@@ -315,6 +350,47 @@ export default function ReportDetailPage() {
         <div className="p-3 rounded bg-rose-50 border border-rose-200 text-rose-800 text-xs">
           {error}
         </div>
+      )}
+
+      {/* Official Certificate Banner */}
+      {certificate && (
+        <Card className="bg-gradient-to-r from-slate-900 via-slate-800 to-teal-950 text-white border-none shadow-sm">
+          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-teal-500/20 border border-teal-400/30 flex items-center justify-center flex-shrink-0 text-teal-300">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm tracking-wide font-mono text-teal-200">
+                    {certificate.certificateNumber}
+                  </span>
+                  <Badge variant="fit" className="text-[10px]">
+                    OFFICIAL CERTIFICATE {certificate.status}
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Issued: {formatDate(certificate.issuedAt)} • Two-Page Print System Ready
+                  {certificate.expiresAt && ` • Valid until: ${formatDate(certificate.expiresAt)}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href={`/verify/${certificate.verificationToken}`} target="_blank">
+                <Button variant="outline" size="sm" className="h-7.5 text-xs text-slate-200 border-slate-600 hover:bg-slate-800 gap-1.5">
+                  <ExternalLink className="h-3 w-3" />
+                  <span>Verify Portal</span>
+                </Button>
+              </Link>
+              <Link href={`/reports/${report.id}/preview`}>
+                <Button size="sm" className="h-7.5 text-xs bg-teal-600 hover:bg-teal-700 text-white gap-1.5">
+                  <Printer className="h-3 w-3" />
+                  <span>Print 2-Page PDF</span>
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Patient Banner */}
