@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Core Clinical Palette */
   --background: 210 20% 98%;
   --foreground: 222 47% 11%;
 
@@ -31,7 +32,7 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
 
-  --radius: 0.375rem;
+  --radius: 0.5rem;
 }
 
 body {
@@ -40,6 +41,8 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
 }
 
 /* Skeleton shimmer gradient */
@@ -56,11 +59,6 @@ body {
   animation: shimmer 1.8s infinite linear;
 }
 
-/* Clinical transition ease */
-.transition-clinical {
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 /* Interactive card hover */
 .interactive-card {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -73,18 +71,30 @@ body {
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Document Printing Utilities */
@@ -106,3 +116,4 @@ body {
     break-before: page !important;
   }
 }
+

@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
+import { ErrorState } from '@/components/ui/error-state';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Save,
   CheckCircle2,
@@ -16,7 +19,9 @@ import {
   Lock,
   Stethoscope,
   Globe2,
+  Loader2,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'CERTIFICATE' | 'DISCLOSURE'>('PROFILE');
@@ -56,6 +61,7 @@ export default function SettingsPage() {
     },
   });
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,8 +83,8 @@ export default function SettingsPage() {
             },
           }));
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load system settings');
       } finally {
         setLoading(false);
       }
@@ -91,283 +97,295 @@ export default function SettingsPage() {
     e.preventDefault();
     setError(null);
     setSaved(false);
+    setSaving(true);
     try {
       const updated = await api.patch('/settings', settings);
       setSettings(updated);
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => setSaved(false), 3500);
     } catch (err: any) {
       setError(err.message || 'Failed to update settings');
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-xs text-slate-400">Loading settings...</div>;
-  }
-
-  const missingMandatory = !settings.orgName || !settings.certificateTitle;
+  const tabs = [
+    { id: 'PROFILE', label: 'Organization Profile', icon: Building2 },
+    { id: 'CERTIFICATE', label: 'Official Certificate Configuration', icon: FileCheck2 },
+    { id: 'DISCLOSURE', label: 'Public QR Privacy Policy', icon: Globe2 },
+  ];
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto animate-fadeIn">
-      <div className="pb-2 border-b border-slate-200">
-        <h1 className="text-lg font-bold tracking-tight text-slate-900">
-          Organization & Certificate Settings
-        </h1>
-        <p className="text-xs text-slate-500">
-          Configure clinical center branding, official fitness certificate parameters, and public verification privacy disclosure policy.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-5xl mx-auto animate-fadeIn">
+      {/* Page Header */}
+      <PageHeader
+        title="Organization & Governance Settings"
+        description="Branding, clinical certificate parameters, authorized signatories, and public verification privacy rules."
+        actions={
+          <Button
+            type="button"
+            disabled={saving || loading}
+            onClick={handleSubmit}
+            className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs"
+          >
+            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            <span>Save All Settings</span>
+          </Button>
+        }
+      />
 
-      {missingMandatory && (
-        <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-          <span>
-            <strong>Configuration Incomplete:</strong> Medical Center Legal Name and Certificate Title are required before certificates can be officially issued.
+      {saved && (
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2.5 animate-fadeInFast shadow-2xs">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+          <span className="font-medium">
+            System settings saved successfully. All changes applied to clinical reports and verification portal.
           </span>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200 gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('PROFILE')}
-          className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition-all ${
-            activeTab === 'PROFILE'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Building2 className="h-4 w-4" />
-          <span>Center Profile</span>
-        </button>
+      {error && (
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5 animate-fadeInFast shadow-2xs">
+          <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('CERTIFICATE')}
-          className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition-all ${
-            activeTab === 'CERTIFICATE'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <FileCheck2 className="h-4 w-4" />
-          <span>Official Certificate & Signatory</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('DISCLOSURE')}
-          className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition-all ${
-            activeTab === 'DISCLOSURE'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Lock className="h-4 w-4" />
-          <span>Privacy & Public Disclosure</span>
-        </button>
+      {/* Tabs Row */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isSelected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                'px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 shadow-2xs',
+                isSelected
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+              )}
+            >
+              <Icon className={cn('h-3.5 w-3.5', isSelected ? 'text-teal-400' : 'text-slate-400')} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <Card className="bg-white">
+      {/* Main Settings Form */}
+      <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
         <form onSubmit={handleSubmit}>
-          <CardContent className="p-5 space-y-4">
-            {saved && (
-              <div className="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                <span>Organization settings updated successfully.</span>
-              </div>
-            )}
-            {error && (
-              <div className="p-2.5 rounded bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* TAB 1: CENTER PROFILE */}
+          <CardContent className="p-4 sm:p-6 space-y-6">
+            {/* TAB 1: ORGANIZATION PROFILE */}
             {activeTab === 'PROFILE' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                      Medical Center Legal Name *
+              <div className="space-y-5 animate-fadeInFast">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Clinical Center Identification
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Official organization details displayed on reports, certificates, and verification screens.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Organization Name *
                     </label>
                     <Input
                       required
                       value={settings.orgName || ''}
                       onChange={(e) => setSettings({ ...settings, orgName: e.target.value })}
+                      placeholder="e.g. MYSA Medical Services (Pvt.) Ltd."
+                      className="h-10 text-xs rounded-xl"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                      Center Registration Code (Prefix) *
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Organization Prefix Code *
                     </label>
                     <Input
                       required
                       value={settings.orgCode || ''}
                       onChange={(e) => setSettings({ ...settings, orgCode: e.target.value })}
-                      className="font-mono"
+                      placeholder="e.g. MMS"
+                      className="h-10 text-xs font-mono uppercase rounded-xl"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                    Center Address & Diagnostic Accreditation Subtitle
-                  </label>
-                  <Input
-                    value={settings.orgAddress || ''}
-                    onChange={(e) => setSettings({ ...settings, orgAddress: e.target.value })}
-                  />
-                </div>
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Diagnostic Center Address
+                    </label>
+                    <Input
+                      value={settings.orgAddress || ''}
+                      onChange={(e) => setSettings({ ...settings, orgAddress: e.target.value })}
+                      placeholder="Full facility address"
+                      className="h-10 text-xs rounded-xl"
+                    />
+                  </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                      Official Contact Phone
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Support Contact Phone
                     </label>
                     <Input
                       value={settings.orgPhone || ''}
                       onChange={(e) => setSettings({ ...settings, orgPhone: e.target.value })}
+                      placeholder="+880 1700-000000"
+                      className="h-10 text-xs font-mono rounded-xl"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                      Official Clinical Email
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Official Contact Email
                     </label>
                     <Input
                       value={settings.orgEmail || ''}
                       onChange={(e) => setSettings({ ...settings, orgEmail: e.target.value })}
+                      placeholder="info@mysamedicalbd.com"
+                      className="h-10 text-xs rounded-xl"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-1 pt-2 border-t border-slate-100">
-                  <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                    Detailed Report Header Title
-                  </label>
-                  <Input
-                    value={settings.reportHeaderTitle || ''}
-                    onChange={(e) => setSettings({ ...settings, reportHeaderTitle: e.target.value })}
-                  />
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Medical Report Title Header
+                    </label>
+                    <Input
+                      value={settings.reportHeaderTitle || ''}
+                      onChange={(e) => setSettings({ ...settings, reportHeaderTitle: e.target.value })}
+                      placeholder="MEDICAL TEST REPORT"
+                      className="h-10 text-xs rounded-xl"
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 2: OFFICIAL CERTIFICATE & SIGNATORY */}
+            {/* TAB 2: CERTIFICATE CONFIGURATION */}
             {activeTab === 'CERTIFICATE' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                      Official Certificate Document Title *
+              <div className="space-y-5 animate-fadeInFast">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Official Fitness Certificate Layout & Signatory
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Authorized physician designation, BMDC medical license, certificate title, and validity days.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Certificate Title Header
                     </label>
                     <Input
-                      required
                       value={settings.certificateTitle || ''}
                       onChange={(e) => setSettings({ ...settings, certificateTitle: e.target.value })}
+                      placeholder="MEDICAL FITNESS CERTIFICATE"
+                      className="h-10 text-xs rounded-xl"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                       Certificate Number Prefix
                     </label>
                     <Input
                       value={settings.certificateNumberPrefix || ''}
                       onChange={(e) => setSettings({ ...settings, certificateNumberPrefix: e.target.value })}
-                      className="font-mono"
+                      placeholder="MC"
+                      className="h-10 text-xs font-mono rounded-xl"
                     />
                   </div>
-                </div>
 
-                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Stethoscope className="h-4 w-4 text-teal-600" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                      Authorized Medical Examiner / Signatory
-                    </span>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Authorized Signatory Name
+                    </label>
+                    <Input
+                      value={settings.signatoryName || ''}
+                      onChange={(e) => setSettings({ ...settings, signatoryName: e.target.value })}
+                      placeholder="Dr. A. K. M. Shamsuddin"
+                      className="h-10 text-xs rounded-xl"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                        Doctor Full Name
-                      </label>
-                      <Input
-                        value={settings.signatoryName || ''}
-                        onChange={(e) => setSettings({ ...settings, signatoryName: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                        Professional Designation & Degree
-                      </label>
-                      <Input
-                        value={settings.signatoryDesignation || ''}
-                        onChange={(e) => setSettings({ ...settings, signatoryDesignation: e.target.value })}
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Signatory Professional Designation
+                    </label>
+                    <Input
+                      value={settings.signatoryDesignation || ''}
+                      onChange={(e) => setSettings({ ...settings, signatoryDesignation: e.target.value })}
+                      placeholder="MBBS, FCPS - Medical Director"
+                      className="h-10 text-xs rounded-xl"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                        Medical License / Council Registration No
-                      </label>
-                      <Input
-                        value={settings.signatoryLicenseNumber || ''}
-                        onChange={(e) => setSettings({ ...settings, signatoryLicenseNumber: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                        Certificate Validity (Days)
-                      </label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={settings.certificateValidityDays !== null ? settings.certificateValidityDays : ''}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            certificateValidityDays: e.target.value === '' ? null : parseInt(e.target.value, 10),
-                          })
-                        }
-                        placeholder="Leave blank for unlimited validity"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Medical License Number
+                    </label>
+                    <Input
+                      value={settings.signatoryLicenseNumber || ''}
+                      onChange={(e) => setSettings({ ...settings, signatoryLicenseNumber: e.target.value })}
+                      placeholder="BMDC Reg No: A-12345"
+                      className="h-10 text-xs font-mono rounded-xl"
+                    />
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 uppercase">
-                    Official Certificate Security Footer & Notice
-                  </label>
-                  <Input
-                    value={settings.certificateFooter || ''}
-                    onChange={(e) => setSettings({ ...settings, certificateFooter: e.target.value })}
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Certificate Validity Duration (Days)
+                    </label>
+                    <Input
+                      type="number"
+                      value={settings.certificateValidityDays || 90}
+                      onChange={(e) => setSettings({ ...settings, certificateValidityDays: parseInt(e.target.value) || 90 })}
+                      placeholder="90"
+                      className="h-10 text-xs rounded-xl"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Certificate Footer Disclaimer
+                    </label>
+                    <Input
+                      value={settings.certificateFooter || ''}
+                      onChange={(e) => setSettings({ ...settings, certificateFooter: e.target.value })}
+                      placeholder="This official certificate verifies fitness for overseas employment. Authenticate online using security QR code."
+                      className="h-10 text-xs rounded-xl"
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 3: PRIVACY & PUBLIC DISCLOSURE POLICY */}
+            {/* TAB 3: PUBLIC QR PRIVACY DISCLOSURE */}
             {activeTab === 'DISCLOSURE' && (
-              <div className="space-y-4">
-                <div className="p-3.5 rounded-lg bg-teal-50 border border-teal-200 text-xs text-teal-900 leading-relaxed">
-                  <strong>Controlled Public Disclosure:</strong> Regulates what candidate and medical examination details are visible when public users scan the QR code or visit the online verification portal.
+              <div className="space-y-5 animate-fadeInFast">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Public Online Verification Privacy Policy
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Control data masking and confidential information displayed when any third-party scans the QR code.
+                  </p>
                 </div>
 
-                <div className="space-y-3 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-700 uppercase block">
-                      Candidate Name Disclosure Mode
+                <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Public Patient Name Presentation Mode
                     </label>
                     <select
                       value={settings.publicDisclosure?.patientNameMode || 'INITIALS'}
@@ -380,15 +398,15 @@ export default function SettingsPage() {
                           },
                         })
                       }
-                      className="w-full text-xs h-8 rounded border border-slate-300 bg-white px-2.5 font-medium"
+                      className="w-full sm:w-80 h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
                     >
-                      <option value="INITIALS">Masked Initials Only (e.g. M*** M***) — Recommended Privacy Standard</option>
-                      <option value="FULL">Full Candidate Name (e.g. MD MOHAN MIA)</option>
+                      <option value="INITIALS">Masked Initials (e.g. M*** F***) — Recommended</option>
+                      <option value="FULL">Full Legal Name (Unmasked)</option>
                     </select>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={!!settings.publicDisclosure?.showPassport}
@@ -403,10 +421,10 @@ export default function SettingsPage() {
                         }
                         className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
                       />
-                      <span className="text-slate-800">Show Masked Passport Number</span>
+                      <span>Show Masked Passport Number</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={!!settings.publicDisclosure?.showDob}
@@ -421,10 +439,10 @@ export default function SettingsPage() {
                         }
                         className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
                       />
-                      <span className="text-slate-800">Show Date of Birth</span>
+                      <span>Show Date of Birth</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={settings.publicDisclosure?.showNationality !== false}
@@ -439,10 +457,10 @@ export default function SettingsPage() {
                         }
                         className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
                       />
-                      <span className="text-slate-800">Show Candidate Nationality</span>
+                      <span>Show Candidate Nationality</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={settings.publicDisclosure?.showDestination !== false}
@@ -457,37 +475,12 @@ export default function SettingsPage() {
                         }
                         className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
                       />
-                      <span className="text-slate-800">Show Destination Country</span>
+                      <span>Show Destination Country</span>
                     </label>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200 space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={!!settings.publicDisclosure?.showDetailedReport}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            publicDisclosure: {
-                              ...settings.publicDisclosure,
-                              showDetailedReport: e.target.checked,
-                            },
-                          })
-                        }
-                        className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
-                      />
-                      <span className="text-slate-900 font-semibold">
-                        Permit Public Disclosure of Detailed Clinical & Laboratory Findings
-                      </span>
-                    </label>
-                    <p className="text-[11px] text-slate-500 pl-6 leading-relaxed">
-                      When disabled (default), public scans only verify official fitness and examination summary with message: <em>Detailed medical report access is restricted.</em>
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-200">
+                    <label className="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={settings.publicDisclosure?.allowPublicDownload !== false}
@@ -502,10 +495,10 @@ export default function SettingsPage() {
                         }
                         className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
                       />
-                      <span className="text-slate-800">Allow Public PDF Downloads on Verify Portal</span>
+                      <span>Allow Public PDF Downloads on Verify Portal</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={settings.publicDisclosure?.allowPublicPrint !== false}
@@ -520,7 +513,7 @@ export default function SettingsPage() {
                         }
                         className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
                       />
-                      <span className="text-slate-800">Allow Public Printing on Verify Portal</span>
+                      <span>Allow Public Printing on Verify Portal</span>
                     </label>
                   </div>
                 </div>
@@ -528,9 +521,13 @@ export default function SettingsPage() {
             )}
           </CardContent>
 
-          <CardFooter className="py-3 px-5 border-t border-slate-100 flex justify-end bg-slate-50/50">
-            <Button type="submit" size="sm" className="gap-1.5 bg-slate-900 hover:bg-slate-800 text-white">
-              <Save className="h-3.5 w-3.5" />
+          <CardFooter className="py-4 px-4 sm:px-6 bg-slate-50/70 border-t border-slate-100 flex justify-end">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs h-9 px-4 text-xs"
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               <span>Save All Settings</span>
             </Button>
           </CardFooter>

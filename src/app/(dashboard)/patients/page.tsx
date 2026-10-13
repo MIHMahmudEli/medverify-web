@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { formatDate, calculateAge } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { TableSkeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/ui/page-header';
+import { SearchFilterBar } from '@/components/ui/search-filter-bar';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 import {
   Table,
   TableHeader,
@@ -16,7 +19,18 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import { Plus, Search, Eye, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Eye,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  UserPlus,
+  MapPin,
+  Calendar,
+  Building,
+} from 'lucide-react';
 
 interface Patient {
   id: string;
@@ -28,6 +42,7 @@ interface Patient {
   country: string;
   agency?: string;
   phone?: string;
+  photoUrl?: string;
   createdAt: string;
 }
 
@@ -55,9 +70,11 @@ export default function PatientsPage() {
   });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadPatients = async (page = 1, searchTerm = search) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.get<PaginatedResponse>('/patients', {
         page,
@@ -66,8 +83,8 @@ export default function PatientsPage() {
       });
       setPatients(res.data);
       setMeta(res.meta);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load patient directory');
     } finally {
       setLoading(false);
     }
@@ -77,179 +94,269 @@ export default function PatientsPage() {
     loadPatients(1, search);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     loadPatients(1, search);
   };
 
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200/80">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
-              Patient Directory
-            </h1>
-            <span className="px-2 py-0.5 text-[11px] font-mono font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200/60">
-              {meta.total} records
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage patient demographic records and overseas examination profiles.
-          </p>
-        </div>
-        <Link href="/patients/new">
-          <Button variant="default" size="sm" className="gap-1.5 shadow-subtle hover:shadow-card transition-all">
-            <Plus className="h-3.5 w-3.5" />
-            <span>Register New Patient</span>
-          </Button>
-        </Link>
-      </div>
+    <div className="space-y-5 animate-fadeIn">
+      {/* Page Header */}
+      <PageHeader
+        title="Patient Directory"
+        description="Overseas employment candidates, medical demographic profiles, and passport records."
+        badge={
+          <span className="px-2.5 py-0.5 text-[11px] font-mono font-medium rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            {meta.total} candidates
+          </span>
+        }
+        actions={
+          <Link href="/patients/new">
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>Register New Patient</span>
+            </Button>
+          </Link>
+        }
+      />
 
-      {/* Filter / Search Bar */}
-      <div className="flex items-center gap-2">
-        <form onSubmit={handleSearch} className="flex-1 max-w-sm flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <Input
-              placeholder="Search by name, passport, or agency..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-8 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 transition-clinical"
-            />
-          </div>
-          <Button type="submit" variant="secondary" size="sm" className="h-8 text-xs px-3">
-            Search
-          </Button>
-        </form>
-      </div>
+      {/* Search & Filter Bar */}
+      <SearchFilterBar
+        value={search}
+        onChange={setSearch}
+        onSubmit={handleSearchSubmit}
+        placeholder="Search by candidate name, passport, agency..."
+        countLabel={`Showing page ${meta.page} of ${meta.totalPages}`}
+      />
 
-      {/* Patient Table Card */}
-      <Card className="bg-white border-slate-200/80 shadow-subtle rounded-xl overflow-hidden">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-4">
-              <TableSkeleton rows={8} cols={8} />
-            </div>
-          ) : patients.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-700">No patients found</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  {search ? 'Try adjusting your search criteria.' : 'Get started by creating a patient record.'}
-                </p>
-              </div>
-              {search && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSearch('');
-                    loadPatients(1, '');
-                  }}
-                  className="text-xs h-7"
-                >
-                  Clear Search
+      {/* Main Content Area */}
+      {error ? (
+        <ErrorState message={error} onRetry={() => loadPatients(meta.page, search)} />
+      ) : loading ? (
+        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden p-4">
+          <TableSkeleton rows={8} cols={7} />
+        </Card>
+      ) : patients.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title={search ? 'No matching patients found' : 'No patients registered yet'}
+          description={
+            search
+              ? 'No candidate records match your query. Try clearing the search.'
+              : 'Get started by creating your first candidate record for pre-employment examination.'
+          }
+          action={
+            search ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearch('');
+                  loadPatients(1, '');
+                }}
+                className="text-xs rounded-lg"
+              >
+                Clear Search
+              </Button>
+            ) : (
+              <Link href="/patients/new">
+                <Button size="sm" className="gap-1.5 text-xs rounded-lg">
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Register Patient</span>
                 </Button>
-              )}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader className="bg-slate-50/75">
-                <TableRow className="border-slate-200/80">
-                  <TableHead className="font-semibold text-slate-700">Full Name</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Passport No</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Gender / Age</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Nationality</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Destination</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Agency</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Registered</TableHead>
-                  <TableHead className="text-right font-semibold text-slate-700">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {patients.map((p) => (
-                  <TableRow
-                    key={p.id}
-                    className="hover:bg-slate-50/70 border-slate-100 transition-clinical group"
-                  >
-                    <TableCell className="font-medium text-slate-900 text-xs">
-                      {p.fullName}
-                    </TableCell>
-                    <TableCell className="font-mono text-slate-800 text-xs">
-                      {p.passportNumber}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {p.gender} • {calculateAge(p.dateOfBirth)}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {p.nationality}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {p.country}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {p.agency || '—'}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {formatDate(p.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/patients/${p.id}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 px-2 text-[11px] gap-1 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60"
-                        >
-                          <Eye className="h-3 w-3 text-slate-500" />
-                          <span>View</span>
-                        </Button>
-                      </Link>
-                    </TableCell>
+              </Link>
+            )
+          }
+        />
+      ) : (
+        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+          <CardContent className="p-0">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/70 border-slate-200 hover:bg-slate-50/70">
+                    <TableHead className="text-xs font-semibold text-slate-700 pl-6">
+                      Candidate Name
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Passport No
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Gender / Age
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Nationality
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Destination
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Agency
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Registered
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-semibold text-slate-700 pr-6">
+                      Action
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-
-          {/* Pagination */}
-          {meta.totalPages > 1 && (
-            <div className="flex items-center justify-between p-3.5 border-t border-slate-100 bg-slate-50/40 text-xs text-slate-500">
-              <span>
-                Showing {((meta.page - 1) * meta.limit) + 1} to{' '}
-                {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} records
-              </span>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!meta.hasPreviousPage}
-                  onClick={() => loadPatients(meta.page - 1)}
-                  className="h-7 w-7 p-0 border-slate-200"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-                <span className="px-2 font-mono text-xs font-semibold text-slate-700">
-                  {meta.page} / {meta.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!meta.hasNextPage}
-                  onClick={() => loadPatients(meta.page + 1)}
-                  className="h-7 w-7 p-0 border-slate-200"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+                </TableHeader>
+                <TableBody>
+                  {patients.map((p) => (
+                    <TableRow
+                      key={p.id}
+                      className="hover:bg-slate-50/80 border-slate-100 transition-colors group"
+                    >
+                      <TableCell className="pl-6">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-200/60 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                            {getInitials(p.fullName)}
+                          </div>
+                          <div>
+                            <span className="font-bold text-xs text-slate-900 uppercase block">
+                              {p.fullName}
+                            </span>
+                            {p.phone && (
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {p.phone}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs font-bold text-slate-800 uppercase">
+                        {p.passportNumber}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600">
+                        {p.gender} • {calculateAge(p.dateOfBirth)}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600 uppercase">
+                        {p.nationality}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-700 font-medium uppercase">
+                        {p.country}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600">
+                        {p.agency || '—'}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500">
+                        {formatDate(p.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Link href={`/patients/${p.id}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2.5 text-[11px] gap-1 rounded-lg hover:border-slate-400"
+                          >
+                            <Eye className="h-3 w-3" />
+                            <span>Details</span>
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {/* Mobile Responsive Cards View */}
+            <div className="md:hidden divide-y divide-slate-100 p-2 space-y-2">
+              {patients.map((p) => (
+                <div
+                  key={p.id}
+                  className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2.5 shadow-2xs"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-9 w-9 rounded-xl bg-teal-50 border border-teal-200/60 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                        {getInitials(p.fullName)}
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-slate-900 uppercase block">
+                          {p.fullName}
+                        </span>
+                        <span className="font-mono text-xs text-slate-600 font-bold uppercase">
+                          {p.passportNumber}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase block">Destination</span>
+                      <span className="font-medium text-slate-800 uppercase">{p.country}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase block">Age / Gender</span>
+                      <span>{calculateAge(p.dateOfBirth)} • {p.gender}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                    <span className="truncate max-w-[160px]">{p.agency || 'Direct'}</span>
+                    <Link href={`/patients/${p.id}`}>
+                      <Button variant="outline" size="sm" className="h-7 text-xs px-2.5 rounded-lg">
+                        <Eye className="h-3 w-3 mr-1" />
+                        <span>Profile</span>
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {meta.totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-50/60 border-t border-slate-100">
+                <span className="text-xs text-slate-500">
+                  Showing {patients.length} of {meta.total} records
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!meta.hasPreviousPage}
+                    onClick={() => loadPatients(meta.page - 1, search)}
+                    className="h-8 px-2.5 text-xs rounded-lg"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                    <span>Previous</span>
+                  </Button>
+
+                  <span className="text-xs font-semibold text-slate-700 px-2">
+                    {meta.page} / {meta.totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!meta.hasNextPage}
+                    onClick={() => loadPatients(meta.page + 1, search)}
+                    className="h-8 px-2.5 text-xs rounded-lg"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

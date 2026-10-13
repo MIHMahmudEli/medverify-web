@@ -6,7 +6,23 @@ import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { AlertCircle, ArrowLeft, Save, Send, Eye, Upload, Trash2, Loader2, CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Save,
+  Send,
+  Eye,
+  Upload,
+  Trash2,
+  Loader2,
+  CheckCircle2,
+  Image as ImageIcon,
+  Activity,
+  Stethoscope,
+  TestTube2,
+  Radiation,
+} from 'lucide-react';
 import Link from 'next/link';
 
 interface ReportFormProps {
@@ -120,7 +136,7 @@ export function ReportForm({
     if (url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/+$/, '');
     return `${apiBase}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
@@ -147,7 +163,7 @@ export function ReportForm({
 
   const handleSave = async (submitForReview = false) => {
     if (!selectedPatientId) {
-      setError('Please select a patient before saving the report');
+      setError('Please select a candidate before saving the report');
       return;
     }
 
@@ -195,544 +211,506 @@ export function ReportForm({
   const selectedPatient = patients.find((p) => p.id === selectedPatientId);
 
   return (
-    <div className="space-y-4 max-w-6xl mx-auto">
-      {/* Top action header */}
-      <div className="flex items-center justify-between">
-        <Link href={isEdit && initialReport ? `/reports/${initialReport.id}` : '/reports'}>
-          <Button variant="ghost" size="sm" className="gap-1 text-slate-500">
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Cancel</span>
-          </Button>
-        </Link>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={loading}
-            onClick={() => handleSave(false)}
-            className="gap-1.5"
-          >
-            <Save className="h-3.5 w-3.5" />
-            <span>Save Draft</span>
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            disabled={loading}
-            onClick={() => handleSave(true)}
-            className="gap-1.5"
-          >
-            <Send className="h-3.5 w-3.5" />
-            <span>Submit for Review</span>
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6 max-w-6xl mx-auto animate-fadeIn">
+      {/* Top Header */}
+      <PageHeader
+        title={isEdit ? `Edit Report Draft: ${initialReport?.registrationNumber}` : 'New Medical Examination Report'}
+        description="Comprehensive clinical findings, laboratory serology, and pulmonary chest radiography."
+        backHref={isEdit && initialReport?.id ? `/reports/${initialReport.id}` : '/reports'}
+        backLabel="Back to reports"
+      />
 
       {error && (
-        <div className="p-3 rounded bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-600" />
-          <span>{error}</span>
+        <div
+          role="alert"
+          className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-3 animate-fadeInFast shadow-2xs"
+        >
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-rose-600 mt-0.5" />
+          <span className="leading-relaxed">{error}</span>
         </div>
       )}
 
-      {/* Section 1: Patient & Registration Header */}
-      <Card className="bg-white">
-        <CardHeader className="py-3">
-          <CardTitle className="text-xs uppercase tracking-wider text-slate-500 font-semibold">
-            Registration & Patient Details
+      {/* 1. Candidate Selection & Date Header */}
+      <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+        <CardHeader className="py-3.5 px-4 sm:px-6 bg-slate-50/60 border-b border-slate-100">
+          <CardTitle className="text-sm font-bold text-slate-900">
+            Candidate & Examination Date
           </CardTitle>
+          <CardDescription className="text-xs text-slate-500">
+            Link this medical report to an authenticated candidate profile.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
-                Select Patient *
-              </label>
-              {isEdit ? (
-                <div className="h-8 flex items-center px-2.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-900 font-medium">
-                  {initialReport?.patient?.fullName} ({initialReport?.patient?.passportNumber})
-                </div>
-              ) : (
-                <select
-                  value={selectedPatientId}
-                  onChange={(e) => setSelectedPatientId(e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 focus-visible:outline-none focus-visible:border-slate-800 focus-visible:ring-1 focus-visible:ring-slate-800"
-                >
-                  <option value="">-- Choose Patient --</option>
-                  {patients.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.fullName} — {p.passportNumber} ({p.country})
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
-                Registration Date *
-              </label>
-              <Input
-                type="date"
-                value={registeredAt}
-                onChange={(e) => setRegisteredAt(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
-                Issuing Protocol
-              </label>
-              <div className="h-8 flex items-center px-2.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 font-mono">
-                {template?.template?.code || 'STANDARD_MMS_V1'}
+        <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              Candidate Selection <span className="text-rose-500">*</span>
+            </label>
+            {isEdit || preselectedPatientId ? (
+              <div className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-900">
+                <span className="uppercase">
+                  {initialReport?.patient?.fullName || selectedPatient?.fullName || 'Selected Candidate'}
+                </span>
+                <span className="font-mono text-slate-500 text-[11px]">
+                  {initialReport?.patient?.passportNumber || selectedPatient?.passportNumber}
+                </span>
               </div>
-            </div>
+            ) : (
+              <select
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+                className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
+              >
+                <option value="">-- Choose Candidate --</option>
+                {patients.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.fullName} ({p.passportNumber}) — {p.country}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          {selectedPatient && (
-            <div className="p-2.5 rounded bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div>
-                <span className="text-slate-400 text-[10px] block">PASSPORT NO</span>
-                <span className="font-mono font-semibold text-slate-800">{selectedPatient.passportNumber}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[10px] block">COUNTRY</span>
-                <span className="font-semibold text-slate-800">{selectedPatient.country}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[10px] block">GENDER / DOB</span>
-                <span className="text-slate-800">{selectedPatient.gender} • {selectedPatient.dateOfBirth?.split('T')[0]}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[10px] block">AGENCY</span>
-                <span className="text-slate-800">{selectedPatient.agency || '—'}</span>
-              </div>
-            </div>
-          )}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              Examination Date <span className="text-rose-500">*</span>
+            </label>
+            <Input
+              type="date"
+              value={registeredAt}
+              onChange={(e) => setRegisteredAt(e.target.value)}
+              className="h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+            />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Two Column Clinical Grid: Medical Exam & Lab Investigation */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left Column: Medical Examination */}
-        <Card className="bg-white">
-          <CardHeader className="py-2.5 bg-slate-900 text-white rounded-t">
-            <CardTitle className="text-xs uppercase tracking-wider text-white font-semibold">
-              Medical Examination
-            </CardTitle>
+      {/* 2. Side-by-Side Clinical Examination & Laboratory Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Medical Examination */}
+        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col">
+          <CardHeader className="py-3 px-4 sm:px-6 bg-slate-900 text-white flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Stethoscope className="h-4 w-4 text-teal-400" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-white">
+                Medical Physical Examination
+              </CardTitle>
+            </div>
+            <span className="text-[10px] text-teal-300 font-mono">15 Tests</span>
           </CardHeader>
-          <CardContent className="p-3 space-y-3">
-            {/* Eye Visual Acuity */}
+
+          <CardContent className="p-4 sm:p-5 space-y-3.5 flex-1">
+            {/* Eye Acuity */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700">Eye Visual Acuity</label>
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Eye Visual Acuity
+              </label>
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Right Eye (R)</span>
-                  <Input
-                    value={reportData.eye_visual_acuity_r}
-                    onChange={(e) => handleFieldChange('eye_visual_acuity_r', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Left Eye (L)</span>
-                  <Input
-                    value={reportData.eye_visual_acuity_l}
-                    onChange={(e) => handleFieldChange('eye_visual_acuity_l', e.target.value)}
-                  />
-                </div>
+                <Input
+                  placeholder="Right (e.g. 6/6)"
+                  value={reportData.eye_visual_acuity_r}
+                  onChange={(e) => handleFieldChange('eye_visual_acuity_r', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
+                />
+                <Input
+                  placeholder="Left (e.g. 6/6)"
+                  value={reportData.eye_visual_acuity_l}
+                  onChange={(e) => handleFieldChange('eye_visual_acuity_l', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
+                />
               </div>
             </div>
 
             {/* Ear */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700">Ear Examination</label>
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Ear Hearing Assessment
+              </label>
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Right Ear (R)</span>
-                  <Input
-                    value={reportData.ear_r}
-                    onChange={(e) => handleFieldChange('ear_r', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Left Ear (L)</span>
-                  <Input
-                    value={reportData.ear_l}
-                    onChange={(e) => handleFieldChange('ear_l', e.target.value)}
-                  />
-                </div>
+                <Input
+                  placeholder="Right (e.g. NAD)"
+                  value={reportData.ear_r}
+                  onChange={(e) => handleFieldChange('ear_r', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
+                />
+                <Input
+                  placeholder="Left (e.g. NAD)"
+                  value={reportData.ear_l}
+                  onChange={(e) => handleFieldChange('ear_l', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
+                />
               </div>
             </div>
 
-            {/* Cardio & Respiratory */}
+            {/* Cardiovascular */}
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">B.P (mm Hg) *</label>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Blood Pressure (B.P)
+                </label>
                 <Input
+                  placeholder="120/80"
                   value={reportData.blood_pressure}
                   onChange={(e) => handleFieldChange('blood_pressure', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Heart</label>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Heart
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.heart}
                   onChange={(e) => handleFieldChange('heart', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
+            {/* Respiratory & Abdomen */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Lungs</label>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Lungs
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.lungs}
                   onChange={(e) => handleFieldChange('lungs', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Abdomen</label>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Abdomen
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.abdomen}
                   onChange={(e) => handleFieldChange('abdomen', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
-            {/* Surgical & Physical Findings */}
+            {/* Surgical / Physical Findings */}
             <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Hernia</label>
-                <select
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Hernia
+                </label>
+                <Input
+                  placeholder="ABSENT"
                   value={reportData.hernia}
                   onChange={(e) => handleFieldChange('hernia', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
-                >
-                  <option value="ABSENT">ABSENT</option>
-                  <option value="PRESENT">PRESENT</option>
-                </select>
+                  className="h-9 text-xs rounded-xl"
+                />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Varicose Veins</label>
-                <select
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Varicose Veins
+                </label>
+                <Input
+                  placeholder="ABSENT"
                   value={reportData.varicose_veins}
                   onChange={(e) => handleFieldChange('varicose_veins', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
-                >
-                  <option value="ABSENT">ABSENT</option>
-                  <option value="PRESENT">PRESENT</option>
-                </select>
+                  className="h-9 text-xs rounded-xl"
+                />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Deformities</label>
-                <select
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Deformities
+                </label>
+                <Input
+                  placeholder="ABSENT"
                   value={reportData.deformities}
                   onChange={(e) => handleFieldChange('deformities', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
-                >
-                  <option value="ABSENT">ABSENT</option>
-                  <option value="PRESENT">PRESENT</option>
-                </select>
+                  className="h-9 text-xs rounded-xl"
+                />
               </div>
             </div>
 
+            {/* Systemic */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Skin</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Skin Condition
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.skin}
                   onChange={(e) => handleFieldChange('skin', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">C.N.S</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  C.N.S
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.cns}
                   onChange={(e) => handleFieldChange('cns', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Extremities</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Extremities
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.extremities}
                   onChange={(e) => handleFieldChange('extremities', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Psychiatry</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Psychiatry
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.psychiatry}
                   onChange={(e) => handleFieldChange('psychiatry', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Venereal Symptoms</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Venereal Symptoms
+                </label>
                 <Input
+                  placeholder="NAD"
                   value={reportData.venereal_symptoms}
                   onChange={(e) => handleFieldChange('venereal_symptoms', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Exam Remarks</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Physical Exam Remarks
+                </label>
                 <Input
+                  placeholder="NORMAL"
                   value={reportData.exam_remarks}
                   onChange={(e) => handleFieldChange('exam_remarks', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
-              </div>
-            </div>
-
-            {/* X-Ray Section */}
-            <div className="p-3 rounded bg-slate-50 border border-slate-200 space-y-3 mt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-800 uppercase block">
-                  Radiological Examination (Chest X-Ray)
-                </span>
-                {xrayImageUrl && (
-                  <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Image Attached
-                  </span>
-                )}
-              </div>
-
-              {/* X-Ray Radiograph Upload Card */}
-              <div className="p-2.5 bg-white rounded border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <div className="relative w-20 h-24 rounded border border-slate-300 bg-slate-950 overflow-hidden flex items-center justify-center shadow-inner flex-shrink-0">
-                  {xrayPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={getFullImageUrl(xrayPreview)}
-                      alt="Chest X-Ray Preview"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-center p-1.5 text-slate-500">
-                      <ImageIcon className="w-6 h-6 mx-auto mb-1 stroke-[1.5]" />
-                      <span className="text-[8px] uppercase tracking-wider font-semibold block text-slate-400">
-                        X-RAY
-                      </span>
-                    </div>
-                  )}
-
-                  {uploadingXray && (
-                    <div className="absolute inset-0 bg-slate-950/70 flex items-center justify-center text-white">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <input
-                      ref={xrayFileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={handleXrayFileChange}
-                      className="hidden"
-                      id="report-xray-input"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={uploadingXray}
-                      onClick={() => xrayFileInputRef.current?.click()}
-                      className="gap-1.5 text-xs h-7"
-                    >
-                      <Upload className="h-3 w-3" />
-                      <span>{xrayPreview ? 'Change X-Ray' : 'Upload Chest X-Ray'}</span>
-                    </Button>
-
-                    {xrayPreview && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={uploadingXray}
-                        onClick={handleRemoveXray}
-                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs h-7 gap-1"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        <span>Remove</span>
-                      </Button>
-                    )}
-                  </div>
-
-                  <p className="text-[10px] text-slate-500">
-                    Standard PA view chest radiograph. Embedded directly into verified PDF certificate.
-                  </p>
-
-                  {uploadXrayError && (
-                    <p className="text-[10px] text-rose-600 flex items-center gap-1 font-medium">
-                      <AlertCircle className="h-3 w-3" />
-                      {uploadXrayError}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-semibold text-slate-600 block">Chest X-Ray Findings</span>
-                  <select
-                    value={xrayFinding}
-                    onChange={(e) => setXrayFinding(e.target.value)}
-                    className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
-                  >
-                    <option value="NORMAL">NORMAL</option>
-                    <option value="NAD">NAD (No Abnormality Detected)</option>
-                    <option value="ABNORMAL">ABNORMAL</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] font-semibold text-slate-600 block">X-Ray Remarks</span>
-                  <Input
-                    value={xrayRemarks}
-                    onChange={(e) => setXrayRemarks(e.target.value)}
-                    className="h-8 text-xs font-semibold text-rose-700"
-                  />
-                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Right Column: Laboratory Investigation */}
-        <Card className="bg-white">
-          <CardHeader className="py-2.5 bg-slate-900 text-white rounded-t">
-            <CardTitle className="text-xs uppercase tracking-wider text-white font-semibold">
-              Laboratory Investigation
-            </CardTitle>
+        {/* Right: Laboratory Investigations */}
+        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col">
+          <CardHeader className="py-3 px-4 sm:px-6 bg-slate-900 text-white flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TestTube2 className="h-4 w-4 text-teal-400" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-white">
+                Laboratory Investigations
+              </CardTitle>
+            </div>
+            <span className="text-[10px] text-teal-300 font-mono">16 Panels</span>
           </CardHeader>
-          <CardContent className="p-3 space-y-3">
-            {/* Urine Investigations */}
+
+          <CardContent className="p-4 sm:p-5 space-y-3.5 flex-1">
+            {/* Urine Panel */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700">Urine Sugar - Albumin</label>
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Urine for Sugar - Albumin
+              </label>
               <Input
+                placeholder="NIL - NIL"
                 value={reportData.urine_sugar_albumin}
                 onChange={(e) => handleFieldChange('urine_sugar_albumin', e.target.value)}
+                className="h-9 text-xs rounded-xl"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Urine Drugs (Opiates/Cannabis)</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Urine Opiates - Cannabis
+                </label>
                 <Input
+                  placeholder="N/A - N/A - N/A"
                   value={reportData.urine_opiates_cannabis}
                   onChange={(e) => handleFieldChange('urine_opiates_cannabis', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Urine Pregnancy Test</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Urine Pregnancy
+                </label>
                 <Input
+                  placeholder="N/A"
                   value={reportData.urine_pregnancy}
                   onChange={(e) => handleFieldChange('urine_pregnancy', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
-            {/* Blood Panel */}
+            {/* Blood Hematology */}
             <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Blood Group</label>
-                <select
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Blood Group
+                </label>
+                <Input
+                  placeholder="B (+VE)"
                   value={reportData.blood_group}
                   onChange={(e) => handleFieldChange('blood_group', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
-                >
-                  <option value="A (+VE)">A (+VE)</option>
-                  <option value="A (-VE)">A (-VE)</option>
-                  <option value="B (+VE)">B (+VE)</option>
-                  <option value="B (-VE)">B (-VE)</option>
-                  <option value="O (+VE)">O (+VE)</option>
-                  <option value="O (-VE)">O (-VE)</option>
-                  <option value="AB (+VE)">AB (+VE)</option>
-                  <option value="AB (-VE)">AB (-VE)</option>
-                </select>
+                  className="h-9 text-xs rounded-xl"
+                />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Haemoglobin</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Haemoglobin (g/dL)
+                </label>
                 <Input
+                  placeholder="14.2"
                   value={reportData.haemoglobin}
                   onChange={(e) => handleFieldChange('haemoglobin', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">ESR</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  E.S.R (mm/hr)
+                </label>
                 <Input
+                  placeholder="12"
                   value={reportData.esr}
                   onChange={(e) => handleFieldChange('esr', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
+            {/* Clinical Biochemistry */}
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">R.B.S (mmol/L)</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  R.B.S (mmol/L)
+                </label>
                 <Input
+                  placeholder="5.8"
                   value={reportData.rbs}
                   onChange={(e) => handleFieldChange('rbs', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">S. Creatinine</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  S. Creatinine
+                </label>
                 <Input
+                  placeholder="1.0"
                   value={reportData.s_creatinine}
                   onChange={(e) => handleFieldChange('s_creatinine', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">S. Bilirubin</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  S. Bilirubin
+                </label>
                 <Input
+                  placeholder="0.85"
                   value={reportData.s_bil}
                   onChange={(e) => handleFieldChange('s_bil', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
+            {/* Liver Function */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">SGPT (ALT)</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  SGPT (U/L)
+                </label>
                 <Input
+                  placeholder="35"
                   value={reportData.sgpt}
                   onChange={(e) => handleFieldChange('sgpt', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">SGOT (AST)</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  SGOT (U/L)
+                </label>
                 <Input
+                  placeholder="28"
                   value={reportData.sgot}
                   onChange={(e) => handleFieldChange('sgot', e.target.value)}
+                  className="h-9 text-xs rounded-xl"
                 />
               </div>
             </div>
 
-            {/* Infectious Serology */}
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+            {/* Infectious Disease Serology */}
+            <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">HIV I & HIV II *</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  HIV I & II
+                </label>
                 <select
                   value={reportData.hiv}
                   onChange={(e) => handleFieldChange('hiv', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
+                  className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl"
                 >
                   <option value="NEGATIVE">NEGATIVE</option>
                   <option value="POSITIVE">POSITIVE</option>
                 </select>
               </div>
+
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">HBsAg *</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  HBsAg
+                </label>
                 <select
                   value={reportData.hbsag}
                   onChange={(e) => handleFieldChange('hbsag', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
+                  className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl"
+                >
+                  <option value="NEGATIVE">NEGATIVE</option>
+                  <option value="POSITIVE">POSITIVE</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Anti HCV
+                </label>
+                <select
+                  value={reportData.anti_hcv}
+                  onChange={(e) => handleFieldChange('anti_hcv', e.target.value)}
+                  className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl"
                 >
                   <option value="NEGATIVE">NEGATIVE</option>
                   <option value="POSITIVE">POSITIVE</option>
@@ -742,76 +720,185 @@ export function ReportForm({
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Anti HCV *</label>
-                <select
-                  value={reportData.anti_hcv}
-                  onChange={(e) => handleFieldChange('anti_hcv', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
-                >
-                  <option value="NEGATIVE">NEGATIVE</option>
-                  <option value="POSITIVE">POSITIVE</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">VDRL *</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  VDRL (Syphilis)
+                </label>
                 <select
                   value={reportData.vdrl}
                   onChange={(e) => handleFieldChange('vdrl', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
+                  className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl"
                 >
                   <option value="NON REACTIVE">NON REACTIVE</option>
                   <option value="REACTIVE">REACTIVE</option>
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">TPHA</label>
+                <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                  TPHA
+                </label>
                 <select
                   value={reportData.tpha}
                   onChange={(e) => handleFieldChange('tpha', e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900"
+                  className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl"
                 >
                   <option value="NEGATIVE">NEGATIVE</option>
                   <option value="POSITIVE">POSITIVE</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">Laboratory Remarks</label>
-                <Input
-                  value={reportData.lab_remarks}
-                  onChange={(e) => handleFieldChange('lab_remarks', e.target.value)}
-                />
-              </div>
+            </div>
+
+            <div className="space-y-1 pt-1 border-t border-slate-100">
+              <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
+                Laboratory Remarks
+              </label>
+              <Input
+                placeholder="NORMAL"
+                value={reportData.lab_remarks}
+                onChange={(e) => handleFieldChange('lab_remarks', e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Footer sticky bar */}
-      <div className="p-3 bg-white border border-slate-200 rounded flex items-center justify-between">
-        <span className="text-xs text-slate-500">
-          All values persist to PostgreSQL. Final medical status must be explicitly approved by an authorized medical professional.
+      {/* 3. Pulmonary Radiology (Chest X-Ray) */}
+      <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+        <CardHeader className="py-3.5 px-4 sm:px-6 bg-slate-50/60 border-b border-slate-100 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Radiation className="h-4 w-4 text-teal-600" />
+              <span>Pulmonary Radiology (Chest X-Ray)</span>
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-500 mt-0.5">
+              Radiological evaluation for tuberculosis and lung pathology.
+            </CardDescription>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Chest X-Ray Finding
+              </label>
+              <Input
+                placeholder="NORMAL"
+                value={xrayFinding}
+                onChange={(e) => setXrayFinding(e.target.value)}
+                className="h-10 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                Radiology Remarks
+              </label>
+              <Input
+                placeholder="NORMAL"
+                value={xrayRemarks}
+                onChange={(e) => setXrayRemarks(e.target.value)}
+                className="h-10 text-xs rounded-xl font-bold text-red-600"
+              />
+            </div>
+          </div>
+
+          {/* Radiograph Upload Box */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+              Chest Radiograph Image
+            </label>
+            <div className="flex items-center gap-4">
+              <div className="w-28 h-32 rounded-xl border border-slate-300 bg-slate-900 flex items-center justify-center overflow-hidden relative shadow-2xs flex-shrink-0">
+                {xrayPreview ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getFullImageUrl(xrayPreview)}
+                      alt="Chest X-Ray"
+                      className="w-full h-full object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveXray}
+                      className="absolute top-1.5 right-1.5 p-1 rounded-lg bg-slate-900/80 text-white hover:bg-rose-600 transition-colors"
+                      title="Remove image"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </>
+                ) : (
+                  <ImageIcon className="h-8 w-8 text-slate-600" />
+                )}
+
+                {uploadingXray && (
+                  <div className="absolute inset-0 bg-slate-950/70 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 text-teal-400 animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  ref={xrayFileInputRef}
+                  onChange={handleXrayFileChange}
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingXray}
+                  onClick={() => xrayFileInputRef.current?.click()}
+                  className="text-xs rounded-lg"
+                >
+                  <Upload className="h-3.5 w-3.5 mr-1.5" />
+                  <span>{xrayPreview ? 'Replace Radiograph' : 'Upload X-Ray'}</span>
+                </Button>
+                <p className="text-[10px] text-slate-400">
+                  Optional. Defaults to official chest radiograph asset if omitted.
+                </p>
+                {uploadXrayError && (
+                  <p className="text-[11px] text-rose-600 font-medium">{uploadXrayError}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sticky Bottom Actions Bar */}
+      <div className="p-4 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-float flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 z-20">
+        <span className="text-xs text-slate-500 text-center sm:text-left">
+          Values persist to PostgreSQL. Final medical fitness is evaluated during doctor sign-off.
         </span>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <Button
             type="button"
             variant="outline"
             size="sm"
             disabled={loading}
             onClick={() => handleSave(false)}
+            className="h-9 px-4 text-xs rounded-xl border-slate-200 hover:border-slate-300 w-full sm:w-auto"
           >
-            Save Draft
+            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
+            <span>Save Draft</span>
           </Button>
+
           <Button
             type="button"
             variant="default"
             size="sm"
             disabled={loading}
             onClick={() => handleSave(true)}
+            className="h-9 px-4 text-xs rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs gap-1.5 w-full sm:w-auto"
           >
-            Submit for Review
+            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
+            <span>Submit for Review</span>
           </Button>
         </div>
       </div>

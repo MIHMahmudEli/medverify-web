@@ -5,10 +5,13 @@ import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TableSkeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/ui/page-header';
+import { SearchFilterBar } from '@/components/ui/search-filter-bar';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ErrorState } from '@/components/ui/error-state';
 import {
   Table,
   TableHeader,
@@ -29,7 +32,10 @@ import {
   CheckCircle2,
   Clock,
   FileSpreadsheet,
+  FilePlus,
+  Printer,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<any[]>([]);
@@ -44,32 +50,38 @@ export default function ReportsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadReports = async (page = 1) => {
+  const loadReports = async (page = 1, currentFilter = statusFilter, searchTerm = search) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.get<any>('/reports', {
         page,
         limit: 10,
-        search,
-        status: statusFilter || undefined,
+        search: searchTerm || undefined,
+        status: currentFilter || undefined,
       });
       setReports(res.data);
       setMeta(res.meta);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load medical reports');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadReports(1);
+    loadReports(1, statusFilter, search);
   }, [statusFilter]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadReports(1);
+    loadReports(1, statusFilter, search);
+  };
+
+  const handleTabChange = (val: string) => {
+    setStatusFilter(val);
   };
 
   const getStatusBadge = (status: string, fitness: string) => {
@@ -92,45 +104,47 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200/80">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
-              Medical Reports
-            </h1>
-            <span className="px-2 py-0.5 text-[11px] font-mono font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200/60">
-              {meta.total} records
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Pre-employment examination certificates, laboratory reports, and fitness decisions.
-          </p>
-        </div>
-        <Link href="/reports/new">
-          <Button variant="default" size="sm" className="gap-1.5 shadow-subtle hover:shadow-card transition-all">
-            <Plus className="h-3.5 w-3.5" />
-            <span>New Medical Report</span>
-          </Button>
-        </Link>
-      </div>
+    <div className="space-y-5 animate-fadeIn">
+      {/* Page Header */}
+      <PageHeader
+        title="Medical Examination Reports"
+        description="Comprehensive clinical assessments, laboratory investigations, radiological findings, and verified certificates."
+        badge={
+          <span className="px-2.5 py-0.5 text-[11px] font-mono font-medium rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            {meta.total} reports
+          </span>
+        }
+        actions={
+          <Link href="/reports/new">
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+            >
+              <FilePlus className="h-3.5 w-3.5" />
+              <span>New Medical Report</span>
+            </Button>
+          </Link>
+        }
+      />
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Quick Filter Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100/80 border border-slate-200/60 rounded-lg text-xs overflow-x-auto">
+      {/* Filter Tabs and Search Bar */}
+      <div className="space-y-3">
+        {/* Status Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {statusTabs.map((tab) => {
-            const isActive = statusFilter === tab.value;
+            const isSelected = statusFilter === tab.value;
             return (
               <button
                 key={tab.value}
-                onClick={() => setStatusFilter(tab.value)}
-                className={`px-3 py-1 rounded-md font-medium transition-clinical whitespace-nowrap ${
-                  isActive
-                    ? 'bg-white text-slate-900 shadow-xs border border-slate-200/50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/40'
-                }`}
+                type="button"
+                onClick={() => handleTabChange(tab.value)}
+                className={cn(
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap shadow-2xs',
+                  isSelected
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                )}
               >
                 {tab.label}
               </button>
@@ -138,161 +152,229 @@ export default function ReportsPage() {
           })}
         </div>
 
-        {/* Search Input */}
-        <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-sm w-full">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <Input
-              placeholder="Search reg number, patient or passport..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-8 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 transition-clinical"
-            />
-          </div>
-          <Button type="submit" variant="secondary" size="sm" className="h-8 text-xs px-3">
-            Search
-          </Button>
-        </form>
+        {/* Search Bar */}
+        <SearchFilterBar
+          value={search}
+          onChange={setSearch}
+          onSubmit={handleSearchSubmit}
+          placeholder="Search by registration number, candidate name, or passport..."
+          countLabel={`Showing page ${meta.page} of ${meta.totalPages}`}
+        />
       </div>
 
-      {/* Reports Table Card */}
-      <Card className="bg-white border-slate-200/80 shadow-subtle rounded-xl overflow-hidden">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-4">
-              <TableSkeleton rows={8} cols={8} />
-            </div>
-          ) : reports.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
-                <FileText className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-700">No medical reports found</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  {search || statusFilter ? 'Try clearing your search query or filter.' : 'Generate your first pre-employment medical report.'}
-                </p>
-              </div>
-              {(search || statusFilter) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSearch('');
-                    setStatusFilter('');
-                  }}
-                  className="text-xs h-7"
-                >
-                  Clear Filters
+      {/* Main Content Area */}
+      {error ? (
+        <ErrorState message={error} onRetry={() => loadReports(meta.page, statusFilter, search)} />
+      ) : loading ? (
+        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden p-4">
+          <TableSkeleton rows={8} cols={8} />
+        </Card>
+      ) : reports.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title={statusFilter ? `No ${statusFilter.toLowerCase()} reports found` : 'No reports found'}
+          description={
+            search || statusFilter
+              ? 'No medical reports match your filter criteria. Try resetting your search or status.'
+              : 'Start by creating your first clinical examination report.'
+          }
+          action={
+            search || statusFilter ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearch('');
+                  setStatusFilter('');
+                }}
+                className="text-xs rounded-lg"
+              >
+                Reset Filters
+              </Button>
+            ) : (
+              <Link href="/reports/new">
+                <Button size="sm" className="gap-1.5 text-xs rounded-lg">
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Create First Report</span>
                 </Button>
-              )}
+              </Link>
+            )
+          }
+        />
+      ) : (
+        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+          <CardContent className="p-0">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/70 border-slate-200 hover:bg-slate-50/70">
+                    <TableHead className="text-xs font-semibold text-slate-700 pl-6">
+                      Reg Number
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Candidate Name
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Passport No
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Destination
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Date
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-slate-700">
+                      Reviewer
+                    </TableHead>
+                    <TableHead className="text-right text-xs font-semibold text-slate-700 pr-6">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reports.map((report) => (
+                    <TableRow
+                      key={report.id}
+                      className="hover:bg-slate-50/80 border-slate-100 transition-colors group"
+                    >
+                      <TableCell className="font-mono text-xs font-bold text-slate-900 pl-6">
+                        {report.registrationNumber}
+                      </TableCell>
+                      <TableCell className="font-semibold text-xs text-slate-900 uppercase">
+                        {report.patient?.fullName || '—'}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-slate-600 uppercase">
+                        {report.patient?.passportNumber || '—'}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600 uppercase">
+                        {report.patient?.country || '—'}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600">
+                        {formatDate(report.registeredAt || report.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(report.status, report.finalMedicalStatus)}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600">
+                        {report.finalizedBy?.fullName || '—'}
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link href={`/reports/${report.id}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2.5 text-[11px] gap-1 rounded-lg hover:border-slate-400"
+                            >
+                              <Eye className="h-3 w-3" />
+                              <span>View</span>
+                            </Button>
+                          </Link>
+                          {report.status === 'FINALIZED' && (
+                            <Link href={`/reports/${report.id}/preview`}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-[11px] gap-1 rounded-lg text-slate-600 hover:text-slate-900"
+                                title="Print / PDF Preview"
+                              >
+                                <Printer className="h-3 w-3" />
+                              </Button>
+                            </Link>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          ) : (
-            <Table>
-              <TableHeader className="bg-slate-50/75">
-                <TableRow className="border-slate-200/80">
-                  <TableHead className="font-semibold text-slate-700">Registration No</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Patient Name</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Passport</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Destination</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Exam Date</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Status</TableHead>
-                  <TableHead className="font-semibold text-slate-700">Revision</TableHead>
-                  <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.map((rep) => (
-                  <TableRow
-                    key={rep.id}
-                    className="hover:bg-slate-50/70 border-slate-100 transition-clinical group"
-                  >
-                    <TableCell className="font-mono font-medium text-slate-900 text-xs">
-                      {rep.registrationNumber}
-                    </TableCell>
-                    <TableCell className="font-medium text-slate-900 text-xs">
-                      {rep.patient?.fullName || '—'}
-                    </TableCell>
-                    <TableCell className="font-mono text-slate-700 text-xs">
-                      {rep.patient?.passportNumber || '—'}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {rep.patient?.country || '—'}
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-xs">
-                      {formatDate(rep.registeredAt)}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(rep.status, rep.finalMedicalStatus)}
-                    </TableCell>
-                    <TableCell className="font-mono text-slate-500 text-[11px]">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/50">
-                        #{rep.currentRevisionNumber}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right space-x-1.5">
-                      <Link href={`/reports/${rep.id}`}>
+
+            {/* Mobile Responsive Cards View */}
+            <div className="md:hidden divide-y divide-slate-100 p-2 space-y-2">
+              {reports.map((report) => (
+                <div
+                  key={report.id}
+                  className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2.5 shadow-2xs"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-bold text-slate-900">
+                      {report.registrationNumber}
+                    </span>
+                    {getStatusBadge(report.status, report.finalMedicalStatus)}
+                  </div>
+
+                  <div>
+                    <span className="font-bold text-sm text-slate-900 uppercase block">
+                      {report.patient?.fullName || 'Candidate'}
+                    </span>
+                    <span className="font-mono text-xs text-slate-500 font-semibold uppercase mt-0.5 block">
+                      Passport: {report.patient?.passportNumber || '—'} • {report.patient?.country || '—'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                    <span>Date: {formatDate(report.registeredAt || report.createdAt)}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Link href={`/reports/${report.id}`}>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7 px-2 text-[11px] gap-1 border-slate-200 hover:border-slate-300 hover:bg-slate-100/60"
+                          className="h-7 text-xs px-2.5 rounded-lg"
                         >
-                          <Eye className="h-3 w-3 text-slate-500" />
-                          <span>View</span>
+                          <Eye className="h-3 w-3 mr-1" />
+                          <span>Review</span>
                         </Button>
                       </Link>
-                      <Link href={`/reports/${rep.id}/preview`}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-[11px] gap-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
-                        >
-                          <FileDown className="h-3 w-3 text-slate-500" />
-                          <span>PDF</span>
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-
-          {/* Pagination */}
-          {meta.totalPages > 1 && (
-            <div className="flex items-center justify-between p-3.5 border-t border-slate-100 bg-slate-50/40 text-xs text-slate-500">
-              <span>
-                Showing {((meta.page - 1) * meta.limit) + 1} to{' '}
-                {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} records
-              </span>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!meta.hasPreviousPage}
-                  onClick={() => loadReports(meta.page - 1)}
-                  className="h-7 w-7 p-0 border-slate-200"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-                <span className="px-2 font-mono text-xs font-semibold text-slate-700">
-                  {meta.page} / {meta.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!meta.hasNextPage}
-                  onClick={() => loadReports(meta.page + 1)}
-                  className="h-7 w-7 p-0 border-slate-200"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {/* Pagination Controls */}
+            {meta.totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-slate-50/60 border-t border-slate-100">
+                <span className="text-xs text-slate-500">
+                  Showing {reports.length} of {meta.total} reports
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!meta.hasPreviousPage}
+                    onClick={() => loadReports(meta.page - 1, statusFilter, search)}
+                    className="h-8 px-2.5 text-xs rounded-lg"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                    <span>Previous</span>
+                  </Button>
+
+                  <span className="text-xs font-semibold text-slate-700 px-2">
+                    {meta.page} / {meta.totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!meta.hasNextPage}
+                    onClick={() => loadReports(meta.page + 1, statusFilter, search)}
+                    className="h-8 px-2.5 text-xs rounded-lg"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
-

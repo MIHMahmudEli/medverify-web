@@ -7,6 +7,9 @@ import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/ui/page-header';
+import { ErrorState } from '@/components/ui/error-state';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   ArrowLeft,
   FileDown,
@@ -17,13 +20,9 @@ import {
   FileText,
   Layers,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
-
-const defaultApi =
-  process.env.NODE_ENV === 'production'
-    ? 'https://medverify-api-y6am.onrender.com'
-    : 'http://localhost:4000';
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || defaultApi).replace(/\/+$/, '');
+import { cn } from '@/lib/utils';
 
 type PreviewDocMode = 'COMBINED' | 'CERTIFICATE_ONLY' | 'REPORT_ONLY';
 
@@ -34,10 +33,12 @@ export default function ReportPdfPreviewPage() {
   const [docMode, setDocMode] = useState<PreviewDocMode>('COMBINED');
   const [loading, setLoading] = useState(true);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const loadDocument = async (mode: PreviewDocMode, repData?: any, certData?: any) => {
     setLoading(true);
+    setError(null);
     try {
       let endpoint = `/reports/${id}/print-pdf`;
       if (mode === 'CERTIFICATE_ONLY') {
@@ -54,15 +55,14 @@ export default function ReportPdfPreviewPage() {
         window.URL.revokeObjectURL(pdfUrl);
       }
       setPdfUrl(url);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load PDF for mode:', mode, err);
-      // Fallback to report pdf if combined fails
       try {
         const blob = await api.downloadBlob(`/reports/${id}/pdf`);
         const url = window.URL.createObjectURL(blob);
         setPdfUrl(url);
-      } catch (e) {
-        console.error('Fallback failed:', e);
+      } catch (e: any) {
+        setError(e.message || 'Failed to render PDF preview');
       }
     } finally {
       setLoading(false);
@@ -80,13 +80,12 @@ export default function ReportPdfPreviewPage() {
           cert = await api.get<any>(`/reports/${id}/certificate`);
           setCertificate(cert);
         } catch {
-          // No certificate yet (e.g. Draft)
+          // No certificate yet
         }
 
         await loadDocument('COMBINED', rep, cert);
-      } catch (err) {
-        console.error(err);
-      } finally {
+      } catch (err: any) {
+        setError(err.message || 'Failed to load document preview');
         setLoading(false);
       }
     }
@@ -102,21 +101,24 @@ export default function ReportPdfPreviewPage() {
     };
   }, [id]);
 
-  const handleModeChange = async (newMode: PreviewDocMode) => {
-    setDocMode(newMode);
-    await loadDocument(newMode);
+  const handleModeChange = (mode: PreviewDocMode) => {
+    setDocMode(mode);
+    loadDocument(mode);
   };
 
   const handlePrint = () => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.focus();
-      iframeRef.current.contentWindow.print();
-    } else if (pdfUrl) {
-      const win = window.open(pdfUrl, '_blank');
-      if (win) {
-        win.focus();
-        win.print();
+      try {
+        iframeRef.current.contentWindow.focus();
+        iframeRef.current.contentWindow.print();
+        return;
+      } catch {
+        // Fallback
       }
+    }
+    if (pdfUrl) {
+      const win = window.open(pdfUrl, '_blank');
+      win?.focus();
     }
   };
 
@@ -124,154 +126,151 @@ export default function ReportPdfPreviewPage() {
     if (!pdfUrl) return;
     const a = document.createElement('a');
     a.href = pdfUrl;
-    const suffix =
+    const modeName =
       docMode === 'COMBINED'
-        ? 'Official_Certificate_and_Report'
+        ? 'Combined_Certificate_and_Report'
         : docMode === 'CERTIFICATE_ONLY'
-          ? 'Official_Medical_Certificate'
-          : 'Detailed_Medical_Report';
-    a.download = `MedVerify_${report?.registrationNumber || id}_${suffix}.pdf`;
+          ? 'Certificate'
+          : 'Report';
+    a.download = `MedVerify_${modeName}_${report?.registrationNumber || id}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
-  const activeVerificationToken =
-    certificate?.verificationToken ||
-    report?.verificationTokens?.find((t: any) => !t.isRevoked)?.token ||
-    `preview-${report?.registrationNumber}`;
-
   return (
-    <div className="space-y-4 max-w-6xl mx-auto animate-fadeIn">
-      {/* Top action header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
-        <div className="flex items-center gap-3">
-          <Link href={`/reports/${id}`}>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-500">
-              <ArrowLeft className="h-4 w-4" />
+    <div className="space-y-6 max-w-6xl mx-auto animate-fadeIn">
+      {/* Top Header */}
+      <PageHeader
+        title="Document Preview & Print Console"
+        description={`Authoritative high-resolution PDF for candidate: ${report?.patient?.fullName || 'Candidate'} (${report?.registrationNumber || ''})`}
+        backHref={`/reports/${id}`}
+        backLabel="Back to report details"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={loading || !pdfUrl}
+              onClick={handlePrint}
+              className="gap-1.5 rounded-lg border-slate-200 text-slate-800 hover:border-slate-300"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              <span>Print Document</span>
             </Button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold tracking-tight text-slate-900 font-mono">
-                {report?.registrationNumber || 'Loading...'}
-              </h1>
-              {certificate ? (
-                <Badge variant="fit" className="text-[10px]">
-                  CERTIFICATE ISSUED ({certificate.certificateNumber})
-                </Badge>
-              ) : report?.status === 'FINALIZED' ? (
-                <Badge variant="fit" className="text-[10px]">
-                  FINALIZED REPORT
-                </Badge>
+
+            <Button
+              variant="default"
+              size="sm"
+              disabled={loading || !pdfUrl}
+              onClick={handleDownload}
+              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              <span>Download PDF</span>
+            </Button>
+
+            {pdfUrl && (
+              <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 rounded-lg text-slate-600 hover:text-slate-900"
+                  title="Open in new window"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Open in Tab</span>
+                </Button>
+              </a>
+            )}
+          </div>
+        }
+      />
+
+      {error ? (
+        <ErrorState message={error} onRetry={() => loadDocument(docMode)} />
+      ) : (
+        <>
+          {/* Document Mode Selection Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => handleModeChange('COMBINED')}
+                className={cn(
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5',
+                  docMode === 'COMBINED'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                )}
+              >
+                <Layers className="h-3.5 w-3.5 text-teal-400" />
+                <span>Combined 2-Page Document (Recommended)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleModeChange('CERTIFICATE_ONLY')}
+                className={cn(
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5',
+                  docMode === 'CERTIFICATE_ONLY'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                )}
+              >
+                <FileCheck2 className="h-3.5 w-3.5 text-blue-500" />
+                <span>Page 1: Certificate Only</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleModeChange('REPORT_ONLY')}
+                className={cn(
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5',
+                  docMode === 'REPORT_ONLY'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                )}
+              >
+                <FileText className="h-3.5 w-3.5 text-amber-500" />
+                <span>Page 2: Medical Report Only</span>
+              </button>
+            </div>
+
+            <span className="text-[11px] text-slate-400 font-mono text-center sm:text-right">
+              A4 Portrait • High DPI Vector
+            </span>
+          </div>
+
+          {/* Interactive Document Viewer Frame */}
+          <Card className="bg-slate-900/5 border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden p-2 sm:p-4">
+            <div className="bg-white rounded-xl border border-slate-300 shadow-float overflow-hidden relative min-h-[500px] sm:min-h-[750px]">
+              {loading && (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-10 animate-fadeInFast">
+                  <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+                  <p className="text-xs font-semibold text-slate-700">
+                    Generating High-Fidelity Clinical PDF...
+                  </p>
+                </div>
+              )}
+
+              {pdfUrl ? (
+                <iframe
+                  ref={iframeRef}
+                  src={`${pdfUrl}#toolbar=0&navpanes=0`}
+                  title="PDF Preview"
+                  className="w-full h-[550px] sm:h-[800px] border-none"
+                />
               ) : (
-                <Badge variant="draft" className="text-[10px]">
-                  DRAFT PREVIEW
-                </Badge>
+                <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400 h-[500px]">
+                  <FileText className="h-10 w-10 mb-2" />
+                  <p className="text-xs font-semibold">No preview generated</p>
+                </div>
               )}
             </div>
-            <p className="text-xs text-slate-500">
-              Mandatory Two-Page Print System • Page 1: Official Certificate • Page 2: Detailed Clinical Report
-            </p>
-          </div>
-        </div>
-
-        {/* Global Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          {activeVerificationToken && (
-            <Link href={`/verify/${activeVerificationToken}`} target="_blank">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
-                <ExternalLink className="h-3.5 w-3.5 text-teal-600" />
-                <span>Verify Online</span>
-              </Button>
-            </Link>
-          )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!pdfUrl}
-            onClick={handlePrint}
-            className="gap-1.5 text-xs h-8 border-slate-300"
-          >
-            <Printer className="h-3.5 w-3.5 text-slate-700" />
-            <span>Print Document</span>
-          </Button>
-
-          <Button
-            variant="default"
-            size="sm"
-            disabled={!pdfUrl}
-            onClick={handleDownload}
-            className="gap-1.5 text-xs h-8 bg-slate-900 hover:bg-slate-800 text-white"
-          >
-            <FileDown className="h-3.5 w-3.5" />
-            <span>Download PDF</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Document View Selector Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-1.5 rounded-lg border border-slate-200">
-        <div className="flex items-center gap-1.5">
-          <Button
-            variant={docMode === 'COMBINED' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleModeChange('COMBINED')}
-            className={`text-xs h-7.5 gap-1.5 ${docMode === 'COMBINED' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-700'}`}
-          >
-            <Layers className="h-3.5 w-3.5" />
-            <span>Combined 2-Page Print (Certificate + Report)</span>
-          </Button>
-
-          <Button
-            variant={docMode === 'CERTIFICATE_ONLY' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleModeChange('CERTIFICATE_ONLY')}
-            className={`text-xs h-7.5 gap-1.5 ${docMode === 'CERTIFICATE_ONLY' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-700'}`}
-          >
-            <FileCheck2 className="h-3.5 w-3.5" />
-            <span>Page 1: Official Certificate</span>
-          </Button>
-
-          <Button
-            variant={docMode === 'REPORT_ONLY' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => handleModeChange('REPORT_ONLY')}
-            className={`text-xs h-7.5 gap-1.5 ${docMode === 'REPORT_ONLY' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-700'}`}
-          >
-            <FileText className="h-3.5 w-3.5" />
-            <span>Page 2: Detailed Clinical Report</span>
-          </Button>
-        </div>
-
-        <div className="text-[11px] text-slate-500 font-medium px-2">
-          {docMode === 'COMBINED' && 'Mandatory print order: Page 1 = Certificate, Page 2 = Report'}
-          {docMode === 'CERTIFICATE_ONLY' && 'Standalone formal medical fitness certificate'}
-          {docMode === 'REPORT_ONLY' && 'Comprehensive laboratory and radiological test report'}
-        </div>
-      </div>
-
-      {/* PDF Document Render Container */}
-      <Card className="bg-white p-2 shadow-sm border border-slate-200">
-        {loading ? (
-          <div className="h-[780px] flex flex-col items-center justify-center space-y-2 text-xs text-slate-400">
-            <div className="h-7 w-7 rounded-full border-2 border-slate-300 border-t-slate-800 animate-spin" />
-            <span>Compiling and rendering high-resolution PDF...</span>
-          </div>
-        ) : pdfUrl ? (
-          <iframe
-            ref={iframeRef}
-            src={pdfUrl}
-            className="w-full h-[780px] rounded border border-slate-200"
-            title="Official Medical Document Preview"
-          />
-        ) : (
-          <div className="h-[780px] flex items-center justify-center text-xs text-rose-500">
-            Failed to render PDF document. Please verify network connection or regenerate the document.
-          </div>
-        )}
-      </Card>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
