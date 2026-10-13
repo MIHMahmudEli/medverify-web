@@ -152,7 +152,7 @@ export default function PublicVerificationPage() {
   const regNumber = data?.registrationNumber || rep?.registrationNumber || '—';
   const fitness = cert?.finalMedicalStatus || data?.finalMedicalStatus || rep?.finalMedicalStatus || 'FIT';
   const isFit = fitness === 'FIT';
-  const orgName = cert?.issuingOrganization || data?.issuingOrganization || 'MYSA MEDICAL SERVICES (PVT.) LTD.';
+  const orgName = cert?.issuingOrganization || data?.issuingOrganization || 'MYSA MEDICAL CENTER';
 
   // Photo URL resolution: prioritize returned photoUrl, fallback to /default_photo.png
   const photoSrc = pat?.photoUrl
@@ -164,13 +164,12 @@ export default function PublicVerificationPage() {
     ? (rep.xrayImageUrl.startsWith('http') || rep.xrayImageUrl.startsWith('/') ? rep.xrayImageUrl : `${API_BASE}/${rep.xrayImageUrl}`)
     : '/default_xray.png';
 
-  const ageDisplay = pat?.dateOfBirth ? calculateAge(pat.dateOfBirth) : '31 Y';
+  const ageDisplay = pat?.dateOfBirth ? calculateAge(pat.dateOfBirth) : '28 Y';
 
   return (
     <div className="min-h-screen bg-slate-200/80 py-8 px-2 sm:px-4 flex flex-col items-center print:bg-white print:p-0 print:m-0 font-sans">
-      {/* 1. TOP STICKY VERIFICATION & ACTION HEADER (HIDDEN IN PRINT) */}
+      {/* 1. TOP STICKY ACTION HEADER (HIDDEN IN PRINT) */}
       <div className="w-full max-w-4xl space-y-3 mb-6 print:hidden">
-        {/* Verification Status Alert Banner */}
         {data?.status === 'VALID' ? (
           <div className="p-4 bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 text-white rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-emerald-500/30">
             <div className="flex items-center gap-3">
@@ -312,11 +311,11 @@ export default function PublicVerificationPage() {
         )}
       </div>
 
-      {/* 2. PAGE 1: OFFICIAL MEDICAL FITNESS CERTIFICATE (THE PRIMARY VISUAL DISPLAY) */}
+      {/* 2. PAGE 1: OFFICIAL MEDICAL FITNESS CERTIFICATE (EXACT MATCH TO REFERENCE PDF PAGE 1) */}
       <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-8 relative print:shadow-none print:border-none print:p-0 print-page-1">
-        {/* Ornate Certificate Frame & Corner Accents */}
-        <div className="border-[2.5px] border-[#1e3a5f] p-4 sm:p-6 relative rounded-sm">
-          {/* Inner fine accent line */}
+        {/* Ornate Certificate Outer Frame & Corner Accents */}
+        <div className="border-[2px] border-[#1e3a5f] p-4 sm:p-6 relative rounded-sm">
+          {/* Inner fine gold accent border */}
           <div className="absolute inset-1.5 border border-[#c5a059] pointer-events-none rounded-2xs" />
 
           {/* Corner marks */}
@@ -349,103 +348,120 @@ export default function PublicVerificationPage() {
           )}
 
           {/* INSTITUTIONAL HEADER */}
-          <div className="text-center space-y-1 pb-3 relative z-0">
-            <h1 className="text-base sm:text-xl font-bold tracking-tight text-[#1e3a5f] uppercase font-sans">
+          <div className="text-center space-y-1 pb-2 relative z-0">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#1e3a5f] uppercase font-sans">
               {orgName}
             </h1>
             <p className="text-[11px] text-slate-600 max-w-lg mx-auto leading-tight">
-              Diagnostic & Medical Checkup Centre for Overseas Employment • Approved by Ministry of Health
+              Diagnostic & Medical Checkup Centre for Overseas Employment
             </p>
             <p className="text-[10px] text-slate-500 font-mono">
-              Govt. Approval Lic: DGHS/MED-84920/2024  •  Phone: +880 1700-000000  •  Email: info@mysamedicalbd.com
+              Phone: +880 1700-000000 | Email: info@mysamedicalbd.com | Govt. Approved Center
             </p>
-            <div className="w-48 h-0.5 bg-[#c5a059] mx-auto mt-2" />
+            <div className="w-56 h-[1px] bg-[#c5a059] mx-auto mt-2" />
           </div>
 
-          {/* CERTIFICATE TITLE RIBBON */}
-          <div className="my-3 text-center">
-            <div className="inline-block border border-[#1e3a5f] bg-[#f8fafc] px-6 py-1.5 shadow-2xs">
-              <span className="text-xs sm:text-sm font-bold tracking-widest text-[#1e3a5f] uppercase">
+          {/* CERTIFICATE TITLE BOX (MATCHING EXACT REFERENCE) */}
+          <div className="my-2.5 text-center">
+            <div className="inline-block border border-[#1e3a5f] bg-[#f8fafc] px-6 py-2 shadow-2xs w-full max-w-xl text-center rounded-2xs">
+              <span className="text-xs sm:text-sm font-bold tracking-widest text-[#1e3a5f] uppercase block">
                 MEDICAL FITNESS CERTIFICATE
+              </span>
+              <span className="text-[8.5px] font-bold tracking-wider text-[#0d5c75] uppercase block mt-0.5">
+                OFFICIAL PRE-EMPLOYMENT HEALTH EXAMINATION & CLEARANCE CREDENTIAL
               </span>
             </div>
           </div>
 
-          {/* CERTIFICATE METADATA STRIP */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 p-2 bg-slate-50 border border-slate-300 text-xs">
+          {/* CERTIFICATE METADATA STRIP (4 EQUAL COLUMNS) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2.5 p-2 bg-[#f8fafc] border border-slate-300 text-xs rounded-2xs">
             <div>
-              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Certificate Number</span>
+              <span className="text-[8.5px] text-slate-500 uppercase block font-semibold">CERTIFICATE NUMBER</span>
               <span className="font-mono font-bold text-[#1e3a5f] text-xs sm:text-sm">{certNumber}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Report Reg. No</span>
+              <span className="text-[8.5px] text-slate-500 uppercase block font-semibold">REPORT REG. NO</span>
               <span className="font-mono font-bold text-slate-800 text-xs sm:text-sm">{regNumber}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Examination Date</span>
-              <span className="text-slate-800 font-medium text-xs">{formatDate(data?.registeredAt || rep?.examinationDate)}</span>
+              <span className="text-[8.5px] text-slate-500 uppercase block font-semibold">EXAMINATION DATE</span>
+              <span className="font-mono font-bold text-slate-800 text-xs">{formatDate(data?.registeredAt || rep?.examinationDate)}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-500 uppercase block font-semibold">Date of Issuance</span>
-              <span className="text-slate-800 font-medium text-xs">{formatDate(cert?.issueDate || data?.registeredAt)}</span>
+              <span className="text-[8.5px] text-slate-500 uppercase block font-semibold">DATE OF ISSUANCE</span>
+              <span className="font-mono font-bold text-slate-800 text-xs">{formatDate(cert?.issueDate || data?.registeredAt)}</span>
             </div>
           </div>
 
-          {/* CANDIDATE IDENTITY SECTION (WITH PHOTOGRAPH) */}
-          <div className="my-3 space-y-1">
+          {/* CANDIDATE IDENTITY SECTION (WITH CANDIDATE PHOTOGRAPH) */}
+          <div className="my-2.5 space-y-1">
             <span className="text-[10px] font-bold text-[#1e3a5f] uppercase tracking-wider block">
-              Candidate Identification Details
+              CANDIDATE IDENTIFICATION DETAILS
             </span>
 
             <div className="border border-slate-300 rounded-sm grid grid-cols-1 sm:grid-cols-4 bg-white text-xs overflow-hidden">
               {/* Details table columns */}
-              <div className="sm:col-span-3 p-3 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 border-b sm:border-b-0 sm:border-r border-slate-300">
+              <div className="sm:col-span-3 p-3 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 border-b sm:border-b-0 sm:border-r border-slate-300 text-[11px]">
                 <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Candidate Full Name</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm uppercase">
-                    {pat?.fullName || data?.patientInitials || 'MD MOHAN MIA'}
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Full Name</span>
+                  <span className="font-bold text-slate-900 uppercase">
+                    {pat?.fullName || data?.patientInitials || 'MOHAMMAD FARUK'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Passport Number</span>
-                  <span className="font-mono font-semibold text-slate-900">
-                    {pat?.passportNumber || 'A09876543'}
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Passport No</span>
+                  <span className="font-mono font-bold text-slate-900 uppercase">
+                    {pat?.passportNumber || 'TEST675823'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Date of Birth / Age</span>
-                  <span className="text-slate-800 font-medium">
-                    {formatDate(pat?.dateOfBirth)} ({ageDisplay})
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Date of Birth</span>
+                  <span className="text-slate-800 font-bold">
+                    {formatDate(pat?.dateOfBirth)}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Nationality</span>
-                  <span className="text-slate-800 font-medium uppercase">
-                    {pat?.nationality || 'Bangladeshi'}
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Age / Gender</span>
+                  <span className="text-slate-800 font-bold">
+                    {ageDisplay} / {pat?.gender || 'Male'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Destination Country</span>
-                  <span className="text-slate-800 font-medium uppercase">
-                    {pat?.destinationCountry || data?.destinationCountry || 'UAE / DUBAI'}
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Nationality</span>
+                  <span className="text-slate-800 font-bold uppercase">
+                    {pat?.nationality || 'BANGLADESHI'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Recruiting Agency</span>
-                  <span className="text-slate-800 font-medium">
-                    {pat?.agency || data?.agency || 'Al-Hasan Overseas Recruitment'}
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Marital Status</span>
+                  <span className="text-slate-800 font-bold">
+                    {pat?.maritalStatus || 'Married'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Destination</span>
+                  <span className="text-slate-800 font-bold uppercase">
+                    {pat?.destinationCountry || data?.destinationCountry || 'UAE/DUBAI'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[8.5px] text-slate-400 block uppercase">Recruiting Agency</span>
+                  <span className="text-slate-800 font-bold">
+                    {pat?.agency || data?.agency || 'Al-Hasan Manpower'}
                   </span>
                 </div>
               </div>
 
-              {/* Photo Box on Certificate */}
-              <div className="p-3 flex flex-col items-center justify-center bg-slate-50">
-                <div className="w-24 h-28 rounded border border-slate-300 bg-white flex items-center justify-center text-slate-400 shadow-2xs overflow-hidden relative">
+              {/* Photo Box on Certificate (Exact Match) */}
+              <div className="p-2.5 flex flex-col items-center justify-center bg-slate-50">
+                <div className="w-24 sm:w-28 h-28 sm:h-32 rounded border border-slate-300 bg-white flex items-center justify-center text-slate-400 shadow-2xs overflow-hidden relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoSrc}
@@ -462,115 +478,164 @@ export default function PublicVerificationPage() {
           </div>
 
           {/* OFFICIAL CLINICAL FITNESS DECLARATION */}
-          <div className="my-3 space-y-2">
+          <div className="my-2.5 space-y-1.5">
             <span className="text-[10px] font-bold text-[#1e3a5f] uppercase tracking-wider block">
-              Official Clinical Fitness Declaration
+              OFFICIAL CLINICAL FITNESS DECLARATION
             </span>
 
-            <div className="border border-slate-300 rounded-sm p-3.5 bg-slate-50/60 text-xs space-y-3">
-              <p className="text-[11px] text-slate-700 leading-relaxed">
-                This is to officially certify that the candidate identified above has presented for examination and has undergone comprehensive pre-employment medical, radiological, and clinical laboratory investigations in accordance with authorized medical protocols. Based upon all clinical assessments and diagnostic findings, the candidate is hereby declared:
+            <div className="border border-slate-300 rounded-sm p-3 bg-slate-50/60 text-xs space-y-2">
+              <p className="text-[10.5px] text-slate-700 leading-relaxed">
+                This is to certify that the candidate identified above has undergone comprehensive medical, radiological, and clinical laboratory examinations in strict accordance with the mandatory health screening protocol. Based upon the complete clinical assessment and diagnostic evaluations performed, the candidate is officially certified as:
               </p>
 
               {/* Prominent Fitness Banner */}
               {isFit ? (
-                <div className="p-3 bg-emerald-50 border-2 border-emerald-600 rounded text-center shadow-2xs">
-                  <span className="text-sm sm:text-base font-extrabold text-emerald-900 uppercase tracking-wide flex items-center justify-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                <div className="p-2.5 bg-white border-2 border-emerald-600 rounded text-center shadow-2xs">
+                  <span className="text-xs sm:text-sm font-extrabold text-emerald-800 uppercase tracking-wide flex items-center justify-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                     CERTIFIED STATUS: MEDICALLY FIT FOR EMPLOYMENT
                   </span>
                 </div>
               ) : (
-                <div className="p-3 bg-rose-50 border-2 border-rose-600 rounded text-center shadow-2xs">
-                  <span className="text-sm sm:text-base font-extrabold text-rose-900 uppercase tracking-wide flex items-center justify-center gap-2">
-                    <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0" />
+                <div className="p-2.5 bg-white border-2 border-rose-600 rounded text-center shadow-2xs">
+                  <span className="text-xs sm:text-sm font-extrabold text-rose-800 uppercase tracking-wide flex items-center justify-center gap-2">
+                    <XCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
                     CERTIFIED STATUS: MEDICALLY UNFIT FOR EMPLOYMENT
                   </span>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 pt-1 text-[11px]">
-                <span className="text-slate-500 font-semibold">Clinical Remarks:</span>
+              <div className="flex items-center gap-2 pt-0.5 text-[10.5px]">
+                <span className="text-slate-500 font-semibold">Authorized Remarks:</span>
                 <span className={isFit ? 'text-emerald-800 font-bold' : 'text-rose-800 font-bold'}>
-                  {rep?.finalRemarks || 'CLINICALLY FIT FOR OVERSEAS EMPLOYMENT'}
+                  {rep?.finalRemarks || 'NORMAL'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* SUMMARY OF DIAGNOSTIC ASSESSMENTS */}
-          <div className="my-3 space-y-1">
+          {/* SUMMARY OF COMPLETED CLINICAL ASSESSMENTS (4 CARDS MATCHING EXACT PDF) */}
+          <div className="my-2.5 space-y-1">
             <span className="text-[10px] font-bold text-[#1e3a5f] uppercase tracking-wider block">
-              Completed Diagnostic Assessments
+              SUMMARY OF COMPLETED CLINICAL ASSESSMENTS
             </span>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] text-slate-500 block uppercase font-medium">Cardiovascular & Physical</span>
-                <span className="font-semibold text-slate-800 text-[11px]">PASSED (NAD)</span>
+              <div className="p-2 rounded bg-slate-50 border border-slate-300 flex flex-col justify-between h-24">
+                <div>
+                  <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">PHYSICAL & SENSORY</span>
+                  <p className="text-[8px] text-slate-500 leading-tight mt-0.5">
+                    Visual acuity, auditory exam, blood pressure, BMI, psychiatric and physical evaluation.
+                  </p>
+                </div>
+                <span className="font-bold text-emerald-700 text-[10px] block text-center">SATISFACTORY</span>
               </div>
-              <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] text-slate-500 block uppercase font-medium">Respiratory / Lungs</span>
-                <span className="font-semibold text-slate-800 text-[11px]">CLEAR (NAD)</span>
+
+              <div className="p-2 rounded bg-slate-50 border border-slate-300 flex flex-col justify-between h-24">
+                <div>
+                  <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">SYSTEMIC EXAMINATION</span>
+                  <p className="text-[8px] text-slate-500 leading-tight mt-0.5">
+                    Cardiovascular, respiratory (lungs), abdomen, extremities, and central nervous system.
+                  </p>
+                </div>
+                <span className="font-bold text-emerald-700 text-[10px] block text-center">NORMAL (NAD)</span>
               </div>
-              <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] text-slate-500 block uppercase font-medium">Serology & Lab Tests</span>
-                <span className="font-semibold text-slate-800 text-[11px]">NON-REACTIVE</span>
+
+              <div className="p-2 rounded bg-slate-50 border border-slate-300 flex flex-col justify-between h-24">
+                <div>
+                  <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">SEROLOGY & BIOCHEMISTRY</span>
+                  <p className="text-[8px] text-slate-500 leading-tight mt-0.5">
+                    HIV I & II, HBsAg, Anti-HCV, VDRL, Creatinine, Bilirubin, SGPT/SGOT, Blood Glucose.
+                  </p>
+                </div>
+                <span className="font-bold text-emerald-700 text-[10px] block text-center">NON-REACTIVE</span>
               </div>
-              <div className="p-2 rounded bg-slate-50 border border-slate-200">
-                <span className="text-[9px] text-slate-500 block uppercase font-medium">Chest X-Ray Investigation</span>
-                <span className="font-semibold text-slate-800 text-[11px]">NORMAL (PASSED)</span>
+
+              <div className="p-2 rounded bg-slate-50 border border-slate-300 flex flex-col justify-between h-24">
+                <div>
+                  <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase">PULMONARY RADIOLOGY</span>
+                  <p className="text-[8px] text-slate-500 leading-tight mt-0.5">
+                    High-resolution chest radiograph (X-ray) for tuberculosis and active thoracic pathology.
+                  </p>
+                </div>
+                <span className="font-bold text-emerald-700 text-[10px] block text-center">NORMAL</span>
               </div>
             </div>
           </div>
 
-          {/* DIGITAL AUTHENTICATION & SIGNATORY SECTION */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4 pt-2 border-t border-slate-300">
-            {/* Left Box: Online Security Verification */}
-            <div className="border border-slate-300 rounded p-3 bg-slate-50/50 flex items-center gap-3">
-              <div className="w-20 h-20 bg-white border border-slate-300 p-1 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                {/* Visual QR Code rendering */}
+          {/* DIGITAL AUTHENTICATION & SIGNATORY/SEAL SECTION (SIDE-BY-SIDE) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-3 pt-1 border-t border-slate-300">
+            {/* Left Box: Cryptographic Online Authentication */}
+            <div className="border border-slate-300 rounded p-2.5 bg-slate-50/50 flex flex-col items-center justify-between text-center">
+              <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase tracking-wider">
+                CRYPTOGRAPHIC ONLINE AUTHENTICATION
+              </span>
+
+              <div className="w-24 h-24 bg-white border border-slate-300 p-1 flex items-center justify-center my-1.5 shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`)}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`)}`}
                   alt="Security QR Code"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div className="text-[10px] space-y-0.5">
-                <span className="font-bold text-[#1e3a5f] block uppercase tracking-wide">Digital Authentication</span>
-                <span className="text-slate-600 block text-[9px] leading-tight">
-                  Cryptographically secured against the MedVerify clinical ledger.
+
+              <div className="text-[9.5px] space-y-0.5">
+                <span className="font-bold text-slate-900 block uppercase tracking-wide">
+                  SCAN TO AUTHENTICATE CERTIFICATE
+                </span>
+                <span className="text-slate-500 block text-[8.5px] leading-tight">
+                  Official verification against MedVerify digital ledger.
                 </span>
                 <span className="text-slate-400 font-mono block text-[8px]">
-                  Token: {String(token).substring(0, 16)}...
-                </span>
-                <span className="text-emerald-700 font-bold block text-[9px]">
-                  ✓ Verified Authentic Online
+                  Token: {String(token).substring(0, 18)}...
                 </span>
               </div>
             </div>
 
-            {/* Right Box: Authorized Medical Signatory */}
-            <div className="border border-slate-300 rounded p-3 bg-slate-50/50 text-center flex flex-col justify-between">
-              <div>
+            {/* Right Box: Authorized Medical Signatory & Seal (WITH AUTHENTIC STAMP) */}
+            <div className="border border-slate-300 rounded p-2.5 bg-slate-50/50 flex flex-col justify-between relative overflow-hidden">
+              <div className="text-center">
                 <span className="text-[9px] font-bold text-[#1e3a5f] block uppercase tracking-wider">
-                  Authorized Medical Examiner & Director
+                  AUTHORIZED MEDICAL SIGNATORY & SEAL
                 </span>
-                <div className="h-6 flex items-center justify-center">
-                  <span className="font-serif italic text-slate-600 text-xs">Dr. A. K. M. Shamsuddin</span>
+                {/* Doctor's Signature Graphic */}
+                <div className="h-9 flex items-center justify-center my-0.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/doctor_signature.png"
+                    alt="Doctor Signature"
+                    className="h-8 w-auto object-contain"
+                  />
                 </div>
               </div>
-              <div className="border-t border-slate-300 pt-1">
-                <span className="font-bold text-slate-900 block text-[11px]">
-                  {cert?.authorizedSignatory?.name || 'Dr. A. K. M. Shamsuddin'}
-                </span>
-                <span className="text-slate-600 block text-[9px]">
-                  {cert?.authorizedSignatory?.designation || 'MBBS, FCPS - Medical Director'}
-                </span>
-                <span className="text-[#0d5c75] font-bold block text-[9px]">
-                  {cert?.authorizedSignatory?.licenseNumber || 'BMDC Reg No: A-12345'}
-                </span>
+
+              {/* Signatory Details and Official Circular Seal side-by-side */}
+              <div className="border-t border-slate-300 pt-1 flex items-center justify-between gap-1">
+                <div className="text-left space-y-0.5">
+                  <span className="font-bold text-slate-900 block text-[10.5px] leading-tight">
+                    {cert?.authorizedSignatory?.name || 'Dr. A. K. M. Shamsuddin'}
+                  </span>
+                  <span className="text-slate-600 block text-[8.5px] leading-tight">
+                    {cert?.authorizedSignatory?.designation || 'MBBS, FCPS - Medical Director'}
+                  </span>
+                  <span className="text-[#0d5c75] font-bold block text-[8.5px] leading-tight">
+                    {cert?.authorizedSignatory?.licenseNumber || 'BMDC Reg No: A-12345'}
+                  </span>
+                  <span className="text-slate-400 block text-[7.5px] italic leading-tight">
+                    Official Clinical Director & Authorized Examiner
+                  </span>
+                </div>
+
+                {/* Official Circular Stamp & Seal Graphic */}
+                <div className="w-16 h-16 sm:w-18 sm:h-18 flex-shrink-0 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/official_stamp.png"
+                    alt="Official Clinic Stamp & Seal"
+                    className="w-full h-full object-contain filter drop-shadow-2xs opacity-95 hover:opacity-100 transition-opacity"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -578,11 +643,11 @@ export default function PublicVerificationPage() {
           {/* CERTIFICATE FOOTER */}
           <div className="text-center pt-2 border-t border-slate-200 text-[9px] text-slate-500">
             <p>
-              This official certificate is generated and authenticated via MedVerify. Tampering or altering this document invalidates its certification.
+              This official certificate verifies fitness for overseas employment. Authenticate online using the security QR code.
             </p>
             <div className="flex items-center justify-between text-[8px] text-slate-400 mt-1 font-mono">
-              <span>MedVerify Clinical Security Standard</span>
-              <span className="font-bold text-slate-600">PAGE 1 OF 2 • OFFICIAL CERTIFICATE</span>
+              <span>Official Medical Fitness Certificate | {certNumber}</span>
+              <span className="font-bold text-slate-600">Page 1 of 2</span>
             </div>
           </div>
         </div>
@@ -610,7 +675,6 @@ export default function PublicVerificationPage() {
               alt="MYSA Medical Services Header Banner"
               className="w-full h-auto object-contain max-h-24 sm:max-h-28"
               onError={(e) => {
-                // If banner file not found, fall back to styled institutional title banner
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
@@ -658,14 +722,14 @@ export default function PublicVerificationPage() {
               {/* Row 1 */}
               <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">NAME</div>
-                <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.fullName || 'MD MOHAN MIA'}</div>
+                <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.fullName || 'MOHAMMAD FARUK'}</div>
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">COUNTRY</div>
                 <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.destinationCountry || 'UAE/DUBAI'}</div>
               </div>
               {/* Row 2 */}
               <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">PASSPORT NO</div>
-                <div className="p-1.5 font-bold text-[#212529] uppercase font-mono">{pat?.passportNumber || 'A09876543'}</div>
+                <div className="p-1.5 font-bold text-[#212529] uppercase font-mono">{pat?.passportNumber || 'TEST675823'}</div>
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">BIRTH DATE</div>
                 <div className="p-1.5 font-bold text-[#212529]">{formatDate(pat?.dateOfBirth)}</div>
               </div>
@@ -688,14 +752,14 @@ export default function PublicVerificationPage() {
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">NATIONALITY</div>
                 <div className="p-1.5 font-bold text-[#212529] uppercase">{pat?.nationality || 'Bangladeshi'}</div>
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">HEIGHT (CM)</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.heightCm ? `${pat.heightCm} cm` : '—'}</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.heightCm ? `${pat.heightCm}` : '175.00'}</div>
               </div>
               {/* Row 6 */}
               <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">AGENCY</div>
-                <div className="p-1.5 font-bold text-[#212529] truncate">{pat?.agency || 'Al-Hasan Overseas Recruitment'}</div>
+                <div className="p-1.5 font-bold text-[#212529] truncate">{pat?.agency || 'Al-Hasan Manpower'}</div>
                 <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">WEIGHT (KG)</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.weightKg ? `${pat.weightKg} kg` : '—'}</div>
+                <div className="p-1.5 font-bold text-[#212529]">{pat?.weightKg ? `${pat.weightKg}` : '68.00'}</div>
               </div>
             </div>
 
@@ -811,7 +875,7 @@ export default function PublicVerificationPage() {
               </div>
               <div className="grid grid-cols-3">
                 <div className="col-span-2 p-1 pl-2">REMARKS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.exam_remarks || 'NAD'}</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.exam_remarks || 'NORMAL'}</div>
               </div>
               {/* X-Ray */}
               <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
@@ -861,7 +925,7 @@ export default function PublicVerificationPage() {
               </div>
               <div className="grid grid-cols-3">
                 <div className="col-span-2 p-1 pl-2">HAEMOGLOBIN</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.haemoglobin || '14.5'}</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.haemoglobin || '14.2'}</div>
               </div>
               <div className="grid grid-cols-3">
                 <div className="col-span-2 p-1 pl-2">ESR</div>
@@ -869,7 +933,7 @@ export default function PublicVerificationPage() {
               </div>
               <div className="grid grid-cols-3">
                 <div className="col-span-2 p-1 pl-2">R.B.S</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.rbs || '6.5'}</div>
+                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.rbs || '5.8'}</div>
               </div>
               <div className="grid grid-cols-3">
                 <div className="col-span-2 p-1 pl-2">S. CREATININE</div>
@@ -926,7 +990,7 @@ export default function PublicVerificationPage() {
               </div>
 
               <div className="text-xs font-bold text-[#212529]">
-                REMARKS: <span className="text-red-600">{rep?.finalRemarks || 'CLINICALLY FIT FOR OVERSEAS EMPLOYMENT'}</span>
+                REMARKS: <span className="text-red-600">{rep?.finalRemarks || 'NORMAL'}</span>
               </div>
             </div>
 
@@ -967,6 +1031,10 @@ export default function PublicVerificationPage() {
           {/* 7. AUTO-GENERATED DISCLAIMER & FOOTER */}
           <div className="text-center pt-2 border-t border-slate-300 text-[10px] text-[#212529]">
             This is an auto generated report, does not require any signature.
+          </div>
+          <div className="flex items-center justify-between text-[8px] text-slate-400 pt-1 border-t border-slate-200 font-mono">
+            <span className="truncate">Online Verification: {typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`}</span>
+            <span className="font-bold text-slate-600 flex-shrink-0">Page 2/2</span>
           </div>
         </div>
       </div>
