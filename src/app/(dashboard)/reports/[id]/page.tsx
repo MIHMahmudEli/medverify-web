@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { ReportDetailSkeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableHeader,
@@ -163,11 +164,27 @@ export default function ReportDetailPage() {
   };
 
   if (loading) {
-    return <div className="p-10 text-center text-xs text-slate-400">Loading report details...</div>;
+    return (
+      <div className="max-w-6xl mx-auto py-2">
+        <ReportDetailSkeleton />
+      </div>
+    );
   }
 
   if (!report) {
-    return <div className="p-10 text-center text-xs text-rose-500">{error || 'Report not found.'}</div>;
+    return (
+      <div className="p-12 text-center space-y-3 animate-fadeIn">
+        <div className="h-12 w-12 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-500">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <p className="text-xs font-semibold text-rose-700">{error || 'Report not found.'}</p>
+        <Link href="/reports">
+          <Button variant="outline" size="sm" className="text-xs">
+            Return to Reports
+          </Button>
+        </Link>
+      </div>
+    );
   }
 
   const p = report.patient;
@@ -189,7 +206,7 @@ export default function ReportDetailPage() {
   const canRevoke = hasRole('SUPER_ADMIN', 'ADMIN');
 
   return (
-    <div className="space-y-4 max-w-6xl mx-auto">
+    <div className="space-y-4 max-w-6xl mx-auto animate-fadeIn">
       {/* Top action header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
         <div className="flex items-center gap-3">
@@ -673,15 +690,15 @@ export default function ReportDetailPage() {
 
       {/* FINALIZATION MODAL */}
       {showFinalizeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="max-w-md w-full bg-white shadow-xl">
-            <CardHeader>
-              <CardTitle>Finalize & Approve Medical Report</CardTitle>
-              <CardDescription>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
+          <Card className="max-w-md w-full bg-white shadow-2xl rounded-xl border border-slate-200 animate-scaleIn overflow-hidden">
+            <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
+              <CardTitle className="text-base text-slate-900">Finalize & Approve Medical Report</CardTitle>
+              <CardDescription className="text-xs text-slate-500">
                 As an authorized medical officer, select the final medical status and approve issuance of the verified certificate with QR code.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3.5 pt-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                   Final Medical Fitness Status *
@@ -689,7 +706,7 @@ export default function ReportDetailPage() {
                 <select
                   value={finalizeStatus}
                   onChange={(e: any) => setFinalizeStatus(e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900"
+                  className="flex h-8.5 w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
                 >
                   <option value="FIT">FIT (Eligible for Travel / Work)</option>
                   <option value="UNFIT">UNFIT (Ineligible)</option>
@@ -705,10 +722,11 @@ export default function ReportDetailPage() {
                   value={finalizeRemarks}
                   onChange={(e) => setFinalizeRemarks(e.target.value)}
                   placeholder="e.g. NORMAL"
+                  className="h-8.5 text-xs"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between py-3">
+            <CardFooter className="flex justify-between py-3 bg-slate-50/50 border-t border-slate-100">
               <Button variant="outline" size="sm" onClick={() => setShowFinalizeModal(false)}>
                 Cancel
               </Button>
@@ -717,6 +735,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleFinalize}
+                className="shadow-subtle"
               >
                 {actionLoading ? 'Approving...' : 'Confirm Approval & Generate QR'}
               </Button>
@@ -727,15 +746,15 @@ export default function ReportDetailPage() {
 
       {/* AMEND MODAL */}
       {showAmendModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="max-w-md w-full bg-white shadow-xl">
-            <CardHeader>
-              <CardTitle>Amend Medical Report</CardTitle>
-              <CardDescription>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
+          <Card className="max-w-md w-full bg-white shadow-2xl rounded-xl border border-slate-200 animate-scaleIn overflow-hidden">
+            <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
+              <CardTitle className="text-base text-slate-900">Amend Medical Report</CardTitle>
+              <CardDescription className="text-xs text-slate-500">
                 Amending will increment revision number to #{report.currentRevisionNumber + 1}, revoke the old QR token, and record an immutable revision history.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3.5 pt-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                   Reason for Amendment *
@@ -745,6 +764,7 @@ export default function ReportDetailPage() {
                   value={amendReason}
                   onChange={(e) => setAmendReason(e.target.value)}
                   placeholder="e.g. Corrected Blood Group, repeat lab examination"
+                  className="h-8.5 text-xs"
                 />
               </div>
 
@@ -755,7 +775,7 @@ export default function ReportDetailPage() {
                 <select
                   value={amendFitness}
                   onChange={(e: any) => setAmendFitness(e.target.value)}
-                  className="flex h-8 w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900"
+                  className="flex h-8.5 w-full rounded border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-900"
                 >
                   <option value="FIT">FIT</option>
                   <option value="UNFIT">UNFIT</option>
@@ -763,7 +783,7 @@ export default function ReportDetailPage() {
                 </select>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between py-3">
+            <CardFooter className="flex justify-between py-3 bg-slate-50/50 border-t border-slate-100">
               <Button variant="outline" size="sm" onClick={() => setShowAmendModal(false)}>
                 Cancel
               </Button>
@@ -772,6 +792,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleAmend}
+                className="shadow-subtle"
               >
                 {actionLoading ? 'Amending...' : 'Submit Amendment'}
               </Button>
@@ -782,18 +803,18 @@ export default function ReportDetailPage() {
 
       {/* REVOKE MODAL */}
       {showRevokeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <Card className="max-w-md w-full bg-white shadow-xl border-rose-300">
-            <CardHeader>
-              <CardTitle className="text-rose-700 flex items-center gap-1.5">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
+          <Card className="max-w-md w-full bg-white shadow-2xl rounded-xl border border-rose-200 animate-scaleIn overflow-hidden">
+            <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
+              <CardTitle className="text-base text-rose-800 flex items-center gap-1.5">
                 <ShieldAlert className="h-4 w-4" />
                 <span>Revoke Medical Report</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs text-rose-600/80">
                 Revoking will permanently deactivate this report and mark any online QR verification check as REVOKED.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3.5 pt-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                   Official Revocation Reason *
@@ -803,10 +824,11 @@ export default function ReportDetailPage() {
                   value={revokeReason}
                   onChange={(e) => setRevokeReason(e.target.value)}
                   placeholder="e.g. Identity discrepancy, investigation fraud"
+                  className="h-8.5 text-xs"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between py-3">
+            <CardFooter className="flex justify-between py-3 bg-slate-50/50 border-t border-slate-100">
               <Button variant="outline" size="sm" onClick={() => setShowRevokeModal(false)}>
                 Cancel
               </Button>
@@ -815,6 +837,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleRevoke}
+                className="shadow-subtle"
               >
                 {actionLoading ? 'Revoking...' : 'Confirm Revocation'}
               </Button>
