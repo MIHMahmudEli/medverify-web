@@ -29,7 +29,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL || defaultApi).replace(/\/+$/,
 
 interface VerificationResult {
   verified: boolean;
-  status: 'VALID' | 'REVOKED' | 'SUPERSEDED' | 'INVALID';
+  status: 'VALID' | 'REVOKED' | 'SUPERSEDED' | 'INVALID' | 'DRAFT';
   message?: string;
   registrationNumber?: string;
   registeredAt?: string;
@@ -124,6 +124,20 @@ export default function PublicVerificationPage() {
                     </p>
                   </div>
                 </div>
+              ) : data?.status === 'DRAFT' ? (
+                <div className="p-5 bg-gradient-to-r from-amber-700 via-amber-800 to-slate-900 text-white flex items-center gap-3.5 shadow-inner">
+                  <div className="h-10 w-10 rounded-full bg-amber-500/30 flex items-center justify-center ring-2 ring-amber-400/50 flex-shrink-0">
+                    <FileText className="h-6 w-6 text-amber-200" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold tracking-wider uppercase">
+                      Examination In Progress (Draft Report)
+                    </h2>
+                    <p className="text-[11px] text-amber-100/90 mt-0.5">
+                      Registered in MedVerify system. Currently awaiting doctor review and final clinical authorization.
+                    </p>
+                  </div>
+                </div>
               ) : data?.status === 'REVOKED' ? (
                 <div className="p-5 bg-gradient-to-r from-rose-800 via-rose-900 to-slate-900 text-white flex items-center gap-3.5 shadow-inner">
                   <div className="h-10 w-10 rounded-full bg-rose-500/30 flex items-center justify-center ring-2 ring-rose-400/50 flex-shrink-0">
@@ -171,7 +185,7 @@ export default function PublicVerificationPage() {
               {/* Details Body */}
               {data && (
                 <CardContent className="p-5 space-y-4">
-                  {data.status === 'VALID' && (
+                  {(data.status === 'VALID' || data.status === 'DRAFT') && (
                     <>
                       <div className="grid grid-cols-2 gap-3 p-3.5 rounded-lg bg-slate-50/90 border border-slate-200/80 text-xs">
                         <div>
@@ -186,8 +200,11 @@ export default function PublicVerificationPage() {
                           <span className="text-[10px] text-slate-400 block uppercase font-semibold tracking-wider">
                             Certified Fitness
                           </span>
-                          <Badge variant={data.finalMedicalStatus === 'FIT' ? 'fit' : 'unfit'} className="mt-0.5">
-                            {data.finalMedicalStatus}
+                          <Badge
+                            variant={data.status === 'DRAFT' ? 'draft' : data.finalMedicalStatus === 'FIT' ? 'fit' : 'unfit'}
+                            className="mt-0.5"
+                          >
+                            {data.status === 'DRAFT' ? 'DRAFT (PENDING APPROVAL)' : data.finalMedicalStatus}
                           </Badge>
                         </div>
                         <div>
@@ -227,6 +244,14 @@ export default function PublicVerificationPage() {
                             {data.agency || '—'}
                           </span>
                         </div>
+                        {data.status === 'DRAFT' && (
+                          <div className="p-3 rounded-lg bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 space-y-1 mt-2">
+                            <span className="font-semibold block text-amber-900">Pre-Approval Status:</span>
+                            <span className="text-amber-800 block text-[11px] leading-relaxed">
+                              This report has been saved as a draft. When an authorized medical doctor finalizes the examination, a permanent cryptographic token will be issued, verifying this report as genuine and certified.
+                            </span>
+                          </div>
+                        )}
                         {data.finalizedAt && (
                           <div className="flex items-center justify-between">
                             <span className="text-slate-500">Signed Timestamp:</span>
