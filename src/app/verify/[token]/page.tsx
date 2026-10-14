@@ -16,6 +16,7 @@ import {
   Layers,
   FileCheck2,
 } from 'lucide-react';
+import { DynamicHeaderBanner } from '@/components/ui/dynamic-header-banner';
 
 const defaultApi =
   process.env.NODE_ENV === 'production'
@@ -85,6 +86,16 @@ interface PublicVerificationData {
   revokedAt?: string;
   allowPublicDownload?: boolean;
   allowPublicPrint?: boolean;
+  settings?: {
+    orgName?: string;
+    orgCode?: string;
+    orgAddress?: string;
+    orgAddressLine2?: string;
+    orgPhone?: string;
+    orgEmail?: string;
+    reportHeaderTitle?: string;
+    logoUrl?: string;
+  };
 }
 
 export default function PublicVerificationPage() {
@@ -327,13 +338,14 @@ export default function PublicVerificationPage() {
           {/* INSTITUTIONAL HEADER */}
           <div className="text-center space-y-1 pb-2 relative z-0">
             <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#1e3a5f] uppercase font-sans">
-              {orgName}
+              {data?.settings?.orgName || orgName}
             </h1>
             <p className="text-[11px] text-slate-600 max-w-lg mx-auto leading-tight">
-              Diagnostic & Medical Checkup Centre for Overseas Employment
+              {data?.settings?.orgAddress || 'Diagnostic & Medical Checkup Centre for Overseas Employment'}
+              {data?.settings?.orgAddressLine2 ? `, ${data.settings.orgAddressLine2}` : ''}
             </p>
             <p className="text-[10px] text-slate-500 font-mono">
-              Phone: +880 1700-000000 | Email: info@mysamedicalbd.com | Govt. Approved Center
+              Phone: {data?.settings?.orgPhone || '+880 1700-000000'} | Email: {data?.settings?.orgEmail || 'info@mysamedicalbd.com'} | Govt. Approved Center
             </p>
             <div className="w-56 h-[1px] bg-[#c5a059] mx-auto mt-2" />
           </div>
@@ -651,23 +663,15 @@ export default function PublicVerificationPage() {
       <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-7 relative print:shadow-none print:border-none print:p-0 print-page-2">
         <div className="border border-[#212529] p-3 sm:p-5 print:p-2 rounded-sm space-y-3 print:space-y-1 bg-white">
           
-          {/* 1. TOP HEADER BANNER (EXACTLY MATCHING PDF BANNER) */}
-          <div className="w-full overflow-hidden flex items-center justify-center border-b border-[#212529] pb-2 print:pb-0.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/header_banner.png"
-              alt="MYSA Medical Services Header Banner"
-              className="w-full h-auto object-contain max-h-24 sm:max-h-28 print:max-h-12"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
+          {/* 1. TOP HEADER BANNER (DYNAMIC CLINICAL BANNER) */}
+          <div className="w-full">
+            <DynamicHeaderBanner settings={data?.settings} />
           </div>
 
           {/* 2. DOCUMENT TITLE */}
           <div className="text-center py-0.5 print:py-0">
             <h2 className="text-xs sm:text-sm font-bold text-[#212529] tracking-wider uppercase font-sans print:text-[11px] print:leading-none">
-              MEDICAL TEST REPORT
+              {data?.settings?.reportHeaderTitle || 'MEDICAL TEST REPORT'}
             </h2>
           </div>
 

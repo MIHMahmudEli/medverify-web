@@ -22,6 +22,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DynamicHeaderBanner } from '@/components/ui/dynamic-header-banner';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'CERTIFICATE' | 'DISCLOSURE'>('PROFILE');
@@ -29,6 +30,7 @@ export default function SettingsPage() {
     orgName: 'MYSA Medical Center',
     orgCode: 'MMS',
     orgAddress: 'Diagnostic & Medical Checkup Centre for Overseas Employment',
+    orgAddressLine2: 'VIP Road, Dhaka-1000',
     orgPhone: '+880 1700-000000',
     orgEmail: 'info@mysamedicalbd.com',
     reportHeaderTitle: 'MEDICAL TEST REPORT',
@@ -181,13 +183,37 @@ export default function SettingsPage() {
           <CardContent className="p-4 sm:p-6 space-y-6">
             {/* TAB 1: ORGANIZATION PROFILE */}
             {activeTab === 'PROFILE' && (
-              <div className="space-y-5 animate-fadeInFast">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Clinical Center Identification
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Official organization details displayed on reports, certificates, and verification screens.
+              <div className="space-y-6 animate-fadeInFast">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Clinical Center Identification
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Official organization details displayed on reports, certificates, and verification screens.
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="self-start sm:self-auto text-[10px] text-teal-700 border-teal-300 bg-teal-50/50">
+                    Dynamic Vector Header Active
+                  </Badge>
+                </div>
+
+                {/* LIVE DYNAMIC HEADER BANNER PREVIEW */}
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-teal-50/20 border border-slate-200/90 shadow-2xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Stethoscope className="h-3.5 w-3.5 text-teal-600" />
+                      Live Dynamic Header Banner Preview
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Page 2 & Verification Sync
+                    </span>
+                  </div>
+                  <div className="bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-300/80 shadow-xs overflow-x-auto no-scrollbar">
+                    <DynamicHeaderBanner settings={settings} />
+                  </div>
+                  <p className="text-[10.5px] text-slate-500 italic">
+                    Note: Updates above will immediately reflect in this preview and apply to all generated PDFs, printouts, and public verification screens.
                   </p>
                 </div>
 
@@ -218,26 +244,38 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  <div className="sm:col-span-2 space-y-1.5">
+                  <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                      Diagnostic Center Address
+                      Diagnostic Center Address (Line 1) *
                     </label>
                     <Input
                       value={settings.orgAddress || ''}
                       onChange={(e) => setSettings({ ...settings, orgAddress: e.target.value })}
-                      placeholder="Full facility address"
+                      placeholder="e.g. Shama Complex (1st Floor), 66/A Naya Paltan"
                       className="h-10 text-xs rounded-xl"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                      Support Contact Phone
+                      Address (Line 2 / Area / City)
+                    </label>
+                    <Input
+                      value={settings.orgAddressLine2 || ''}
+                      onChange={(e) => setSettings({ ...settings, orgAddressLine2: e.target.value })}
+                      placeholder="e.g. VIP Road, Dhaka-1000"
+                      className="h-10 text-xs rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Support Contact Phone(s)
                     </label>
                     <Input
                       value={settings.orgPhone || ''}
                       onChange={(e) => setSettings({ ...settings, orgPhone: e.target.value })}
-                      placeholder="+880 1700-000000"
+                      placeholder="e.g. 01886 679341, 01610 679341 or +880 1700-000000"
                       className="h-10 text-xs font-mono rounded-xl"
                     />
                   </div>
