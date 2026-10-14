@@ -20,6 +20,9 @@ import {
   Stethoscope,
   Globe2,
   Loader2,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DynamicHeaderBanner } from '@/components/ui/dynamic-header-banner';
@@ -30,9 +33,10 @@ export default function SettingsPage() {
     orgName: 'MYSA Medical Center',
     orgCode: 'MMS',
     orgAddress: 'Diagnostic & Medical Checkup Centre for Overseas Employment',
-    orgAddressLine2: 'VIP Road, Dhaka-1000',
+    orgAddressLine2: '',
     orgPhone: '+880 1700-000000',
     orgEmail: 'info@mysamedicalbd.com',
+    logoUrl: '',
     reportHeaderTitle: 'MEDICAL TEST REPORT',
     disclaimerText: 'This is an auto generated report, does not require any signature.',
     certificateTitle: 'MEDICAL FITNESS CERTIFICATE',
@@ -64,6 +68,7 @@ export default function SettingsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,6 +115,29 @@ export default function SettingsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    setError(null);
+    try {
+      const res = await api.uploadFile(file);
+      if (res && res.url) {
+        setSettings((prev: any) => ({ ...prev, logoUrl: res.url }));
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload clinic logo image');
+    } finally {
+      setUploadingLogo(false);
+      // Reset input value so same file can be re-selected if needed
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setSettings((prev: any) => ({ ...prev, logoUrl: '' }));
   };
 
   const tabs = [
@@ -187,10 +215,10 @@ export default function SettingsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900">
-                      Clinical Center Identification
+                      Clinical Center Identification & Header Branding
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Official organization details displayed on reports, certificates, and verification screens.
+                      Official diagnostic center details and custom logo displayed dynamically across medical reports, certificates, and online verification.
                     </p>
                   </div>
                   <Badge variant="outline" className="self-start sm:self-auto text-[10px] text-teal-700 border-teal-300 bg-teal-50/50">
@@ -199,24 +227,104 @@ export default function SettingsPage() {
                 </div>
 
                 {/* LIVE DYNAMIC HEADER BANNER PREVIEW */}
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-teal-50/20 border border-slate-200/90 shadow-2xs space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                      <Stethoscope className="h-3.5 w-3.5 text-teal-600" />
-                      Live Dynamic Header Banner Preview
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-teal-50/20 to-sky-50/20 border border-slate-200/90 shadow-2xs space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <Stethoscope className="h-4 w-4 text-teal-600" />
+                      Dynamic Header Banner (Live Real-Time Preview)
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      Page 2 & Verification Sync
+                    <span className="text-[10px] text-teal-800 font-semibold bg-teal-100/70 border border-teal-200 px-2 py-0.5 rounded-full w-fit">
+                      Reports & Verification Sync
                     </span>
                   </div>
-                  <div className="bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-300/80 shadow-xs overflow-x-auto no-scrollbar">
+                  <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-300 shadow-xs overflow-x-auto no-scrollbar">
                     <DynamicHeaderBanner settings={settings} />
                   </div>
-                  <p className="text-[10.5px] text-slate-500 italic">
-                    Note: Updates above will immediately reflect in this preview and apply to all generated PDFs, printouts, and public verification screens.
+                  <p className="text-[11px] text-slate-500">
+                    This dynamic banner is generated on-the-fly and rendered on Page 2 (Detailed Medical Test Report), downloadable PDFs, and public verification screens. Any change to the fields or logo below updates immediately.
                   </p>
                 </div>
 
+                {/* CLINIC LOGO & BRANDING SECTION */}
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <ImageIcon className="h-3.5 w-3.5 text-teal-600" />
+                        Clinical Center Logo & Emblem
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Upload your official clinic logo to display on report banners. If not provided, an official vector medical crest is used.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-1">
+                    {/* Logo Preview Box */}
+                    <div className="h-16 w-36 rounded-xl border border-slate-200 bg-white flex items-center justify-center p-2 flex-shrink-0 shadow-2xs overflow-hidden">
+                      {settings.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={settings.logoUrl}
+                          alt="Clinic Logo Preview"
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-400 text-center">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            Vector Crest
+                          </span>
+                          <span className="text-[8.5px] text-slate-400">({settings.orgCode || 'MMS'})</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload / Remove Actions */}
+                    <div className="space-y-2 flex-1 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-2xs active:scale-95 transition-all">
+                          {uploadingLogo ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Upload className="h-3.5 w-3.5" />
+                          )}
+                          <span>{settings.logoUrl ? 'Change Clinic Logo' : 'Upload Clinic Logo'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={uploadingLogo}
+                            onChange={handleLogoUpload}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {settings.logoUrl && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleRemoveLogo}
+                            className="gap-1.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl h-8.5"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Remove Logo</span>
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Direct Logo URL Option */}
+                      <div className="pt-1">
+                        <Input
+                          value={settings.logoUrl || ''}
+                          onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                          placeholder="Or enter direct image URL (https://...)"
+                          className="h-8 text-[11px] rounded-lg max-w-md"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ORGANIZATION DETAILS FORM GRID */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
@@ -226,7 +334,7 @@ export default function SettingsPage() {
                       required
                       value={settings.orgName || ''}
                       onChange={(e) => setSettings({ ...settings, orgName: e.target.value })}
-                      placeholder="e.g. MYSA Medical Services (Pvt.) Ltd."
+                      placeholder="e.g. MYSA Medical Center"
                       className="h-10 text-xs rounded-xl"
                     />
                   </div>
@@ -249,9 +357,10 @@ export default function SettingsPage() {
                       Diagnostic Center Address (Line 1) *
                     </label>
                     <Input
+                      required
                       value={settings.orgAddress || ''}
                       onChange={(e) => setSettings({ ...settings, orgAddress: e.target.value })}
-                      placeholder="e.g. Shama Complex (1st Floor), 66/A Naya Paltan"
+                      placeholder="e.g. Diagnostic & Medical Checkup Centre for Overseas Employment"
                       className="h-10 text-xs rounded-xl"
                     />
                   </div>
@@ -263,7 +372,7 @@ export default function SettingsPage() {
                     <Input
                       value={settings.orgAddressLine2 || ''}
                       onChange={(e) => setSettings({ ...settings, orgAddressLine2: e.target.value })}
-                      placeholder="e.g. VIP Road, Dhaka-1000"
+                      placeholder="e.g. Kakrail, Ramna, Dhaka-1000 (Optional)"
                       className="h-10 text-xs rounded-xl"
                     />
                   </div>
