@@ -239,12 +239,12 @@ export default function ReportDetailPage() {
   const canRevoke = hasRole('SUPER_ADMIN', 'ADMIN');
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto animate-fadeIn">
+    <div className="space-y-6 w-full max-w-7xl mx-auto animate-fadeIn">
       {/* Top Header Card */}
       <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Left: Back button + Details */}
-          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+          <div className="flex items-center gap-3.5 min-w-0">
             <Link href="/reports" aria-label="Back to reports">
               <Button
                 variant="outline"
@@ -276,8 +276,8 @@ export default function ReportDetailPage() {
             </div>
           </div>
 
-          {/* Right: Actions Toolbar - Strictly in one line */}
-          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto flex-shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-slate-100">
+          {/* Right: Actions Toolbar - Strictly in one line on the right side of the screen */}
+          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto flex-shrink-0 ml-auto pt-2 sm:pt-0">
             {report.status === 'DRAFT' && (
               <>
                 <Link href={`/reports/${report.id}/edit`} className="flex-shrink-0">
