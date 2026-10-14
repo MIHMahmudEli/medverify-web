@@ -35,6 +35,9 @@ import {
   Building2,
   X,
   Sparkles,
+  KeyRound,
+  Copy,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function UsersPage() {
@@ -51,6 +54,45 @@ export default function UsersPage() {
     department: 'Clinical Operations',
   });
   const [modalError, setModalError] = useState<string | null>(null);
+
+  // Reset / Temporary Password States
+  const [selectedUserForReset, setSelectedUserForReset] = useState<any | null>(null);
+  const [customTempPassword, setCustomTempPassword] = useState('');
+  const [generatedTempPassword, setGeneratedTempPassword] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetCopied, setResetCopied] = useState(false);
+
+  const handleOpenResetModal = (user: any) => {
+    setSelectedUserForReset(user);
+    setCustomTempPassword('');
+    setGeneratedTempPassword(null);
+    setResetError(null);
+    setResetCopied(false);
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!selectedUserForReset) return;
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      const res = await api.post<any>(`/users/${selectedUserForReset.id}/reset-password`, {
+        temporaryPassword: customTempPassword.trim() || undefined,
+      });
+      setGeneratedTempPassword(res.temporaryPassword);
+    } catch (err: any) {
+      setResetError(err.message || 'Failed to restore temporary password');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (!generatedTempPassword) return;
+    navigator.clipboard.writeText(generatedTempPassword);
+    setResetCopied(true);
+    setTimeout(() => setResetCopied(false), 3000);
+  };
 
   const loadUsers = async () => {
     setLoading(true);
@@ -231,14 +273,27 @@ export default function UsersPage() {
                         {formatDate(u.createdAt)}
                       </TableCell>
                       <TableCell className="text-right pr-6">
-                        <Button
-                          variant={u.isActive ? 'outline' : 'secondary'}
-                          size="sm"
-                          onClick={() => handleToggleActive(u)}
-                          className="h-7 px-2.5 text-[11px] rounded-lg transition-all"
-                        >
-                          {u.isActive ? 'Deactivate' : 'Activate'}
-                        </Button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenResetModal(u)}
+                            title="Restore Temporary Password"
+                            className="h-7 px-2.5 text-[11px] rounded-lg transition-all gap-1 text-slate-700 hover:text-teal-700 hover:bg-teal-50 border-slate-200 shadow-2xs"
+                          >
+                            <KeyRound className="h-3 w-3 text-teal-600" />
+                            <span>Reset Pass</span>
+                          </Button>
+
+                          <Button
+                            variant={u.isActive ? 'outline' : 'secondary'}
+                            size="sm"
+                            onClick={() => handleToggleActive(u)}
+                            className="h-7 px-2.5 text-[11px] rounded-lg transition-all"
+                          >
+                            {u.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -278,14 +333,26 @@ export default function UsersPage() {
                       )}
                     </div>
 
-                    <Button
-                      variant={u.isActive ? 'outline' : 'secondary'}
-                      size="sm"
-                      onClick={() => handleToggleActive(u)}
-                      className="h-7 px-2.5 text-[11px] rounded-lg"
-                    >
-                      {u.isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenResetModal(u)}
+                        className="h-7 px-2 text-[11px] rounded-lg gap-1 border-teal-200 bg-teal-50/50 text-teal-700 font-semibold"
+                      >
+                        <KeyRound className="h-3 w-3" />
+                        <span>Reset Pass</span>
+                      </Button>
+
+                      <Button
+                        variant={u.isActive ? 'outline' : 'secondary'}
+                        size="sm"
+                        onClick={() => handleToggleActive(u)}
+                        className="h-7 px-2.5 text-[11px] rounded-lg"
+                      >
+                        {u.isActive ? 'Deactivate' : 'Activate'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -458,6 +525,146 @@ export default function UsersPage() {
                 </div>
               </form>
             </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* RESTORE / TEMPORARY PASSWORD MODAL */}
+      {selectedUserForReset && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
+              <CardHeader className="bg-gradient-to-r from-teal-50 via-white to-slate-50 border-b border-slate-100 pb-4 relative">
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserForReset(null)}
+                  className="absolute right-4 top-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                  aria-label="Close dialog"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <div className="flex items-center gap-2.5">
+                  <div className="h-10 w-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 shadow-2xs">
+                    <KeyRound className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-bold text-slate-900">
+                      Restore User Account Password
+                    </CardTitle>
+                    <CardDescription className="text-xs text-slate-500 mt-0.5">
+                      Issue a temporary password for account recovery.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-5 space-y-4">
+                {/* Target User Details */}
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block">
+                      {selectedUserForReset.fullName}
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-500 block">
+                      {selectedUserForReset.email}
+                    </span>
+                  </div>
+                  {getRoleBadge(selectedUserForReset.role)}
+                </div>
+
+                {resetError && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 animate-fadeInFast">
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <span className="font-medium leading-snug">{resetError}</span>
+                  </div>
+                )}
+
+                {/* If temporary password has been generated */}
+                {generatedTempPassword ? (
+                  <div className="space-y-3 animate-fadeInFast">
+                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1.5">
+                      <div className="flex items-center gap-2 font-bold text-emerald-800">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <span>Temporary Password Active</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700 leading-snug">
+                        Give this temporary password to <strong>{selectedUserForReset.fullName}</strong>. They can log in immediately and then update their password from their account profile.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-slate-900 text-white flex items-center justify-between gap-3 shadow-sm">
+                      <div className="font-mono font-bold text-base sm:text-lg tracking-wider text-teal-300 select-all">
+                        {generatedTempPassword}
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleCopyPassword}
+                        className="h-8 px-3 text-xs bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-lg gap-1.5 shadow-xs transition-all active:scale-95 flex-shrink-0"
+                      >
+                        {resetCopied ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span>Copy Password</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      If this staff member forgot their password or cannot log in, generate a temporary password below. You can enter a custom password or leave it blank to automatically create a random secure one.
+                    </p>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                        Custom Temporary Password (Optional)
+                      </label>
+                      <Input
+                        type="text"
+                        value={customTempPassword}
+                        onChange={(e) => setCustomTempPassword(e.target.value)}
+                        placeholder="Leave blank to auto-generate"
+                        className="h-10 text-xs font-mono rounded-xl"
+                      />
+                      <span className="text-[10px] text-slate-400">
+                        Leave blank to auto-generate a secure temporary password.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/80 border-t border-slate-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedUserForReset(null)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  {generatedTempPassword ? 'Close' : 'Cancel'}
+                </Button>
+
+                {!generatedTempPassword && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={resetLoading}
+                    onClick={handleConfirmResetPassword}
+                    className="h-9 px-4 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-xs active:scale-95 transition-all gap-1.5"
+                  >
+                    {resetLoading ? 'Generating...' : 'Restore Temporary Password'}
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
           </div>
         </ModalPortal>
       )}

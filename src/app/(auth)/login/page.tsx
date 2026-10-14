@@ -12,11 +12,7 @@ import {
   EyeOff,
   Lock,
   Mail,
-  Shield,
-  FileCheck2,
-  Activity,
   ArrowRight,
-  Sparkles,
   LogIn,
 } from 'lucide-react';
 
@@ -27,7 +23,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'doctor' | 'operator' | 'lab' | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,29 +36,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const setDemoCredentials = (role: 'admin' | 'doctor' | 'operator' | 'lab') => {
-    setSelectedRole(role);
-    switch (role) {
-      case 'admin':
-        setEmail('admin@medverify.com');
-        setPassword('AdminPassword123!');
-        break;
-      case 'doctor':
-        setEmail('doctor@medverify.com');
-        setPassword('DoctorPassword123!');
-        break;
-      case 'operator':
-        setEmail('operator@medverify.com');
-        setPassword('OperatorPassword123!');
-        break;
-      case 'lab':
-        setEmail('lab@medverify.com');
-        setPassword('LabPassword123!');
-        break;
-    }
-    setError(null);
   };
 
   return (
@@ -217,87 +189,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          {/* Quick Role Autofill (Test Accounts) */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 font-mono flex items-center gap-1.5">
-                <Sparkles className="h-3 w-3 text-teal-600" />
-                Quick Role Autofill
-              </span>
-              <span className="text-[9px] text-slate-400 font-mono">1-Click Test Access</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {/* Super Admin */}
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('admin')}
-                className={`p-2.5 rounded-xl text-left transition-all border ${
-                  selectedRole === 'admin'
-                    ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500/40 text-teal-900 shadow-xs'
-                    : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <Shield className="h-3.5 w-3.5 text-indigo-600" />
-                  <span className="text-xs font-semibold text-slate-900">Super Admin</span>
-                </div>
-                <span className="text-[10px] text-slate-500 block line-clamp-1">Full governance</span>
-              </button>
-
-              {/* Doctor */}
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('doctor')}
-                className={`p-2.5 rounded-xl text-left transition-all border ${
-                  selectedRole === 'doctor'
-                    ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500/40 text-teal-900 shadow-xs'
-                    : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <Stethoscope className="h-3.5 w-3.5 text-teal-600" />
-                  <span className="text-xs font-semibold text-slate-900">Doctor / Reviewer</span>
-                </div>
-                <span className="text-[10px] text-slate-500 block line-clamp-1">Sign-off & Finalize</span>
-              </button>
-
-              {/* Report Operator */}
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('operator')}
-                className={`p-2.5 rounded-xl text-left transition-all border ${
-                  selectedRole === 'operator'
-                    ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500/40 text-teal-900 shadow-xs'
-                    : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <FileCheck2 className="h-3.5 w-3.5 text-cyan-600" />
-                  <span className="text-xs font-semibold text-slate-900">Report Operator</span>
-                </div>
-                <span className="text-[10px] text-slate-500 block line-clamp-1">Data & entry flow</span>
-              </button>
-
-              {/* Lab Technician */}
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('lab')}
-                className={`p-2.5 rounded-xl text-left transition-all border ${
-                  selectedRole === 'lab'
-                    ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500/40 text-teal-900 shadow-xs'
-                    : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <Activity className="h-3.5 w-3.5 text-amber-600" />
-                  <span className="text-xs font-semibold text-slate-900">Lab Technician</span>
-                </div>
-                <span className="text-[10px] text-slate-500 block line-clamp-1">Diagnostics & labs</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Security & Compliance Badges */}

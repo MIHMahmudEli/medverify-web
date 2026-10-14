@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -16,7 +16,9 @@ import {
   LogOut,
   Stethoscope,
   X,
+  KeyRound,
 } from 'lucide-react';
+import { ChangePasswordModal } from '@/components/ui/change-password-modal';
 
 interface NavItem {
   label: string;
@@ -91,6 +93,7 @@ export interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const handleLinkClick = () => {
     if (onMobileClose) {
@@ -241,18 +244,35 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={logout}
-              title="Sign out of MedVerify"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(true)}
+                title="Change Account Password"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                aria-label="Change Password"
+              >
+                <KeyRound className="h-4 w-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={logout}
+                title="Sign out of MedVerify"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
+
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </>
   );
 }

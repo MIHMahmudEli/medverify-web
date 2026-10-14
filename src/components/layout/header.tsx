@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { ChevronRight, Menu, Plus, UserPlus, FilePlus, Stethoscope } from 'lucide-react';
+import { ChevronRight, Menu, Plus, UserPlus, FilePlus, Stethoscope, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ChangePasswordModal } from '@/components/ui/change-password-modal';
 
 export interface HeaderProps {
   onOpenMobileMenu?: () => void;
@@ -16,6 +17,7 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
   const { user } = useAuth();
 
   const paths = pathname ? pathname.split('/').filter(Boolean) : [];
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const formatBreadcrumb = (segment: string) => {
     if (segment === 'dashboard') return 'Dashboard';
@@ -140,21 +142,34 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
           </Link>
         </div>
 
-        {/* User Mini Avatar / Status */}
+        {/* User Mini Avatar / Status & Change Password */}
         <div className="flex items-center gap-2 pl-1.5 border-l border-slate-200">
-          <div className="h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full bg-teal-50 border border-teal-200 text-teal-800 flex items-center justify-center font-bold text-xs select-none">
-            {getInitials(user?.fullName)}
-          </div>
-          <div className="hidden lg:flex flex-col text-left">
-            <span className="text-xs font-semibold text-slate-800 leading-tight truncate max-w-[120px]">
-              {user?.fullName || 'Clinical User'}
-            </span>
-            <span className="text-[10px] text-teal-600 font-mono font-bold uppercase leading-tight">
-              {user?.role?.replace('_', ' ') || 'STAFF'}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowPasswordModal(true)}
+            title="Change Account Password"
+            className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-50 transition-colors group text-left"
+          >
+            <div className="h-7.5 w-7.5 sm:h-8 sm:w-8 rounded-full bg-teal-50 border border-teal-200 text-teal-800 flex items-center justify-center font-bold text-xs select-none group-hover:border-teal-400 transition-colors">
+              {getInitials(user?.fullName)}
+            </div>
+            <div className="hidden lg:flex flex-col text-left">
+              <span className="text-xs font-semibold text-slate-800 leading-tight truncate max-w-[120px] group-hover:text-teal-700">
+                {user?.fullName || 'Clinical User'}
+              </span>
+              <span className="text-[10px] text-teal-600 font-mono font-bold uppercase leading-tight flex items-center gap-1">
+                <span>{user?.role?.replace('_', ' ') || 'STAFF'}</span>
+                <KeyRound className="h-2.5 w-2.5 opacity-60 group-hover:opacity-100" />
+              </span>
+            </div>
+          </button>
         </div>
       </div>
+
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
     </header>
   );
 }
