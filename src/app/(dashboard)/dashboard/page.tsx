@@ -125,7 +125,7 @@ export default function DashboardPage() {
               <Button
                 variant="default"
                 size="sm"
-                className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+                className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs font-semibold active:scale-95 transition-all"
               >
                 <FilePlus className="h-3.5 w-3.5" />
                 <span>New Examination Report</span>
@@ -308,43 +308,46 @@ export default function DashboardPage() {
                 </Table>
               </div>
 
-              {/* Mobile Responsive Cards View */}
-              <div className="md:hidden divide-y divide-slate-100 p-2 space-y-2">
+              {/* Mobile Responsive Cards View (APK Native Style) */}
+              <div className="md:hidden p-3 space-y-3">
                 {data.recentReports.map((report) => (
-                  <div
+                  <Link
                     key={report.id}
-                    className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2.5 shadow-2xs"
+                    href={`/reports/${report.id}`}
+                    className="block p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 active:scale-[0.98] transition-all hover:border-slate-300"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-bold text-slate-900">
-                        {report.registrationNumber}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-teal-500" />
+                        <span className="font-mono text-xs font-bold text-slate-800 tracking-tight">
+                          {report.registrationNumber}
+                        </span>
+                      </div>
                       {getStatusBadge(report.status, report.finalMedicalStatus)}
                     </div>
 
-                    <div>
-                      <div className="font-bold text-sm text-slate-900 uppercase">
-                        {report.patient.fullName}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm text-slate-900 uppercase truncate">
+                          {report.patient.fullName}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5 truncate">
+                          Passport: {report.patient.passportNumber} • {report.patient.country}
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-500 font-mono mt-0.5">
-                        Passport: {report.patient.passportNumber} • {report.patient.country}
+                      <div className="h-8 w-8 rounded-xl bg-teal-50 border border-teal-200/80 text-teal-700 flex items-center justify-center flex-shrink-0">
+                        <Eye className="h-4 w-4" />
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-                      <span>Date: {formatDate(report.registeredAt)}</span>
-                      <Link href={`/reports/${report.id}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs px-2.5 rounded-lg"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          <span>Review</span>
-                        </Button>
-                      </Link>
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-[11px] text-slate-400">
+                      <span>Exam: {formatDate(report.registeredAt)}</span>
+                      <span className="text-teal-700 font-semibold flex items-center gap-1">
+                        Review Details
+                        <ArrowRight className="h-3 w-3" />
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </>

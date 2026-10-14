@@ -165,7 +165,7 @@ export default function ReportPdfPreviewPage() {
               size="sm"
               disabled={loading || !pdfUrl}
               onClick={handleDownload}
-              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+              className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs font-semibold active:scale-95 transition-all"
             >
               <FileDown className="h-3.5 w-3.5" />
               <span>Download PDF</span>
@@ -194,18 +194,18 @@ export default function ReportPdfPreviewPage() {
         <>
           {/* Document Mode Selection Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
-            <div className="flex items-center gap-1.5 overflow-x-auto">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => handleModeChange('COMBINED')}
                 className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5',
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 active:scale-95',
                   docMode === 'COMBINED'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-teal-600 text-white shadow-xs'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 )}
               >
-                <Layers className="h-3.5 w-3.5 text-teal-400" />
+                <Layers className="h-3.5 w-3.5" />
                 <span>Combined 2-Page Document (Recommended)</span>
               </button>
 
@@ -213,13 +213,13 @@ export default function ReportPdfPreviewPage() {
                 type="button"
                 onClick={() => handleModeChange('CERTIFICATE_ONLY')}
                 className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5',
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 active:scale-95',
                   docMode === 'CERTIFICATE_ONLY'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-teal-600 text-white shadow-xs'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 )}
               >
-                <FileCheck2 className="h-3.5 w-3.5 text-blue-500" />
+                <FileCheck2 className="h-3.5 w-3.5" />
                 <span>Page 1: Certificate Only</span>
               </button>
 
@@ -227,13 +227,13 @@ export default function ReportPdfPreviewPage() {
                 type="button"
                 onClick={() => handleModeChange('REPORT_ONLY')}
                 className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5',
+                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 active:scale-95',
                   docMode === 'REPORT_ONLY'
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-teal-600 text-white shadow-xs'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 )}
               >
-                <FileText className="h-3.5 w-3.5 text-amber-500" />
+                <FileText className="h-3.5 w-3.5" />
                 <span>Page 2: Medical Report Only</span>
               </button>
             </div>

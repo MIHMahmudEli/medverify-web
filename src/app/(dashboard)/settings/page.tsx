@@ -127,7 +127,7 @@ export default function SettingsPage() {
             type="button"
             disabled={saving || loading}
             onClick={handleSubmit}
-            className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs"
+            className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs active:scale-95 transition-all"
           >
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
             <span>Save All Settings</span>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
       )}
 
       {/* Tabs Row */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
@@ -162,13 +162,13 @@ export default function SettingsPage() {
               type="button"
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                'px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 shadow-2xs',
+                'px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 shadow-2xs active:scale-95',
                 isSelected
-                  ? 'bg-slate-900 text-white shadow-xs'
+                  ? 'bg-teal-600 text-white shadow-xs'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
               )}
             >
-              <Icon className={cn('h-3.5 w-3.5', isSelected ? 'text-teal-400' : 'text-slate-400')} />
+              <Icon className={cn('h-3.5 w-3.5', isSelected ? 'text-white' : 'text-slate-400')} />
               <span>{tab.label}</span>
             </button>
           );
@@ -525,7 +525,7 @@ export default function SettingsPage() {
             <Button
               type="submit"
               disabled={saving}
-              className="gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs h-9 px-4 text-xs"
+              className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs h-9 px-4 text-xs active:scale-95 transition-all"
             >
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               <span>Save All Settings</span>

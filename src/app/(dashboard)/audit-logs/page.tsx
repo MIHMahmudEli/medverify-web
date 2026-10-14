@@ -84,7 +84,8 @@ export default function AuditLogsPage() {
       ) : (
         <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/70 border-slate-200 hover:bg-slate-50/70">
@@ -128,6 +129,37 @@ export default function AuditLogsPage() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Responsive Cards View (APK Native Style) */}
+            <div className="md:hidden p-3 space-y-3">
+              {logs.map((log) => (
+                <div
+                  key={log.id}
+                  className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] text-slate-500">
+                      {formatDateTime(log.createdAt)}
+                    </span>
+                    {getActionBadge(log.action)}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Authorized Actor</span>
+                      <span className="font-semibold text-xs text-slate-900">
+                        {log.user?.fullName || log.userId || 'SYSTEM'}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Target Entity</span>
+                      <span className="font-mono text-xs text-teal-700">
+                        {log.entityType ? `${log.entityType}` : 'System'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

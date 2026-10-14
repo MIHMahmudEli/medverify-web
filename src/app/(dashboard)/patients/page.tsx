@@ -121,7 +121,7 @@ export default function PatientsPage() {
             <Button
               variant="default"
               size="sm"
-              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+              className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs font-semibold active:scale-95 transition-all"
             >
               <UserPlus className="h-3.5 w-3.5" />
               <span>Register New Patient</span>
@@ -271,50 +271,55 @@ export default function PatientsPage() {
               </Table>
             </div>
 
-            {/* Mobile Responsive Cards View */}
-            <div className="md:hidden divide-y divide-slate-100 p-2 space-y-2">
+            {/* Mobile Responsive Cards View (APK Native Style) */}
+            <div className="md:hidden p-3 space-y-3">
               {patients.map((p) => (
-                <div
+                <Link
                   key={p.id}
-                  className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2.5 shadow-2xs"
+                  href={`/patients/${p.id}`}
+                  className="block p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 active:scale-[0.98] transition-all hover:border-slate-300"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-9 w-9 rounded-xl bg-teal-50 border border-teal-200/60 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-2xl bg-teal-50 border border-teal-200/80 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-2xs">
                         {getInitials(p.fullName)}
                       </div>
                       <div>
-                        <span className="font-bold text-sm text-slate-900 uppercase block">
+                        <span className="font-bold text-sm text-slate-900 uppercase block tracking-tight">
                           {p.fullName}
                         </span>
-                        <span className="font-mono text-xs text-slate-600 font-bold uppercase">
-                          {p.passportNumber}
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="font-mono text-xs text-teal-700 font-bold uppercase">
+                            {p.passportNumber}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-[11px] font-semibold text-slate-600 uppercase">
+                            {p.country}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase block">Destination</span>
-                      <span className="font-medium text-slate-800 uppercase">{p.country}</span>
+                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Demographics</span>
+                      <span className="font-medium text-slate-800">{calculateAge(p.dateOfBirth)} • {p.gender}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase block">Age / Gender</span>
-                      <span>{calculateAge(p.dateOfBirth)} • {p.gender}</span>
+                      <span className="text-[10px] text-slate-400 font-mono uppercase block">Agency</span>
+                      <span className="font-medium text-slate-800 truncate block">{p.agency || 'Direct'}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-                    <span className="truncate max-w-[160px]">{p.agency || 'Direct'}</span>
-                    <Link href={`/patients/${p.id}`}>
-                      <Button variant="outline" size="sm" className="h-7 text-xs px-2.5 rounded-lg">
-                        <Eye className="h-3 w-3 mr-1" />
-                        <span>Profile</span>
-                      </Button>
-                    </Link>
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                    <span>Added: {formatDate(p.createdAt)}</span>
+                    <span className="text-teal-700 font-semibold flex items-center gap-1">
+                      View Profile
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
 

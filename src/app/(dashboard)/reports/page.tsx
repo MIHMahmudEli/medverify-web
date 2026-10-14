@@ -119,7 +119,7 @@ export default function ReportsPage() {
             <Button
               variant="default"
               size="sm"
-              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+              className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs font-semibold active:scale-95 transition-all"
             >
               <FilePlus className="h-3.5 w-3.5" />
               <span>New Medical Report</span>
@@ -131,7 +131,7 @@ export default function ReportsPage() {
       {/* Filter Tabs and Search Bar */}
       <div className="space-y-3">
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {statusTabs.map((tab) => {
             const isSelected = statusFilter === tab.value;
             return (
@@ -140,9 +140,9 @@ export default function ReportsPage() {
                 type="button"
                 onClick={() => handleTabChange(tab.value)}
                 className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap shadow-2xs',
+                  'px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap shadow-2xs active:scale-95',
                   isSelected
-                    ? 'bg-slate-900 text-white shadow-xs'
+                    ? 'bg-teal-600 text-white shadow-xs'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
@@ -294,45 +294,52 @@ export default function ReportsPage() {
               </Table>
             </div>
 
-            {/* Mobile Responsive Cards View */}
-            <div className="md:hidden divide-y divide-slate-100 p-2 space-y-2">
+            {/* Mobile Responsive Cards View (APK Native Style) */}
+            <div className="md:hidden p-3 space-y-3">
               {reports.map((report) => (
-                <div
+                <Link
                   key={report.id}
-                  className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2.5 shadow-2xs"
+                  href={`/reports/${report.id}`}
+                  className="block p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 active:scale-[0.98] transition-all hover:border-slate-300"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs font-bold text-slate-900">
-                      {report.registrationNumber}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-teal-500" />
+                      <span className="font-mono text-xs font-bold text-slate-800 tracking-tight">
+                        {report.registrationNumber}
+                      </span>
+                    </div>
                     {getStatusBadge(report.status, report.finalMedicalStatus)}
                   </div>
 
-                  <div>
-                    <span className="font-bold text-sm text-slate-900 uppercase block">
-                      {report.patient?.fullName || 'Candidate'}
-                    </span>
-                    <span className="font-mono text-xs text-slate-500 font-semibold uppercase mt-0.5 block">
-                      Passport: {report.patient?.passportNumber || '—'} • {report.patient?.country || '—'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-                    <span>Date: {formatDate(report.registeredAt || report.createdAt)}</span>
-                    <div className="flex items-center gap-1.5">
-                      <Link href={`/reports/${report.id}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs px-2.5 rounded-lg"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          <span>Review</span>
-                        </Button>
-                      </Link>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="font-bold text-sm text-slate-900 uppercase block tracking-tight truncate">
+                        {report.patient?.fullName || 'Candidate'}
+                      </span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="font-mono text-xs text-teal-700 font-bold uppercase">
+                          {report.patient?.passportNumber || '—'}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-[11px] font-semibold text-slate-600 uppercase">
+                          {report.patient?.country || '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-8 w-8 rounded-xl bg-teal-50 border border-teal-200/80 text-teal-700 flex items-center justify-center flex-shrink-0">
+                      <Eye className="h-4 w-4" />
                     </div>
                   </div>
-                </div>
+
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 text-[11px] text-slate-400">
+                    <span>Exam: {formatDate(report.registeredAt || report.createdAt)}</span>
+                    <span className="text-teal-700 font-semibold flex items-center gap-1">
+                      Review Record
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </Link>
               ))}
             </div>
 

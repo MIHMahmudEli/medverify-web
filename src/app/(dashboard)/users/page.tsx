@@ -136,7 +136,7 @@ export default function UsersPage() {
             variant="default"
             size="sm"
             onClick={() => setShowCreateModal(true)}
-            className="gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm font-semibold transition-all hover:shadow-md"
+            className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-xs font-semibold active:scale-95 transition-all"
           >
             <UserPlus className="h-4 w-4" />
             <span>Create New User</span>
@@ -170,7 +170,8 @@ export default function UsersPage() {
       ) : (
         <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/70 border-slate-200 hover:bg-slate-50/70">
@@ -243,6 +244,51 @@ export default function UsersPage() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Responsive Cards View (APK Native Style) */}
+            <div className="md:hidden p-3 space-y-3">
+              {users.map((u) => (
+                <div
+                  key={u.id}
+                  className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="font-bold text-sm text-slate-900 block truncate">
+                        {u.fullName}
+                      </span>
+                      <span className="font-mono text-xs text-slate-500 block truncate mt-0.5">
+                        {u.email}
+                      </span>
+                    </div>
+                    {getRoleBadge(u.role)}
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-medium text-slate-700">
+                        {u.department || 'Operations'}
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      {u.isActive ? (
+                        <span className="text-emerald-700 font-semibold text-[11px]">Active</span>
+                      ) : (
+                        <span className="text-rose-700 font-semibold text-[11px]">Deactivated</span>
+                      )}
+                    </div>
+
+                    <Button
+                      variant={u.isActive ? 'outline' : 'secondary'}
+                      size="sm"
+                      onClick={() => handleToggleActive(u)}
+                      className="h-7 px-2.5 text-[11px] rounded-lg"
+                    >
+                      {u.isActive ? 'Deactivate' : 'Activate'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -405,7 +451,7 @@ export default function UsersPage() {
                   <Button
                     type="submit"
                     disabled={actionLoading}
-                    className="h-10 px-5 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all"
+                    className="h-10 px-5 text-xs font-bold rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all"
                   >
                     {actionLoading ? 'Creating User Account...' : 'Register Account'}
                   </Button>

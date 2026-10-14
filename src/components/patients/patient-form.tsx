@@ -462,7 +462,7 @@ export function PatientForm({
             <Button
               type="submit"
               disabled={loading || uploadingPhoto}
-              className="w-full sm:w-auto h-9 text-xs rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs gap-1.5"
+              className="w-full sm:w-auto h-9 text-xs rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs gap-1.5 active:scale-95 transition-all"
             >
               {loading ? (
                 <>

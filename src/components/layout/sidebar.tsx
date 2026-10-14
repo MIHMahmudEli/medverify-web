@@ -16,7 +16,6 @@ import {
   LogOut,
   Stethoscope,
   X,
-  ExternalLink,
 } from 'lucide-react';
 
 interface NavItem {
@@ -112,38 +111,38 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       {mobileOpen && (
         <div
           onClick={onMobileClose}
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden animate-fadeInFast"
+          className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50 md:hidden animate-fadeInFast"
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container (Clean White Theme) */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-250 ease-in-out md:static md:translate-x-0 select-none shadow-xl md:shadow-none',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white text-slate-700 flex flex-col border-r border-slate-200/90 transition-transform duration-250 ease-in-out md:static md:translate-x-0 select-none shadow-xl md:shadow-none',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
           <Link
             href="/dashboard"
             onClick={handleLinkClick}
             className="flex items-center gap-2.5 group transition-transform active:scale-[0.98]"
           >
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white shadow-md group-hover:shadow-teal-500/20 transition-all">
+            <div className="h-10 w-10 rounded-xl bg-teal-50 border border-teal-200/80 flex items-center justify-center text-teal-600 shadow-xs group-hover:scale-105 transition-all">
               <Stethoscope className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white tracking-tight text-sm font-sans">
-                  MedVerify
+                <span className="font-extrabold text-slate-900 tracking-tight text-base font-sans">
+                  Med<span className="text-teal-600">Verify</span>
                 </span>
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                  PRO
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-teal-50 text-teal-700 border border-teal-200 uppercase">
+                  Enterprise
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
                 Clinical Portal
               </span>
             </div>
@@ -154,7 +153,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             <button
               type="button"
               onClick={onMobileClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 md:hidden transition-colors"
               aria-label="Close sidebar navigation"
             >
               <X className="h-5 w-5" />
@@ -193,10 +192,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                         href={item.href}
                         onClick={handleLinkClick}
                         className={cn(
-                          'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all group',
+                          'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group active:scale-[0.98]',
                           isActive
-                            ? 'bg-slate-800 text-white font-semibold shadow-xs border-l-2 border-teal-400 rounded-l-none'
-                            : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                            ? 'bg-teal-50 text-teal-800 font-bold shadow-2xs border-l-3 border-teal-600'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         )}
                       >
                         <div className="flex items-center gap-2.5">
@@ -204,15 +203,15 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                             className={cn(
                               'h-4 w-4 transition-colors',
                               isActive
-                                ? 'text-teal-400'
-                                : 'text-slate-400 group-hover:text-slate-200'
+                                ? 'text-teal-600 stroke-[2.2]'
+                                : 'text-slate-400 group-hover:text-slate-700'
                             )}
                           />
                           <span>{item.label}</span>
                         </div>
 
                         {item.badge && (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-slate-700 text-slate-300">
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                             {item.badge}
                           </span>
                         )}
@@ -225,18 +224,18 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           })}
         </nav>
 
-        {/* User Card & Sign Out */}
-        <div className="p-3 border-t border-slate-800 bg-slate-900/80">
-          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-800/70 border border-slate-700/60">
+        {/* User Card & Sign Out (White Theme) */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/70">
+          <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="h-8 w-8 rounded-lg bg-teal-600/30 border border-teal-500/40 text-teal-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
+              <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                 {getInitials(user?.fullName)}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-white truncate">
+                <span className="text-xs font-semibold text-slate-900 truncate">
                   {user?.fullName || 'Clinical User'}
                 </span>
-                <span className="text-[10px] text-teal-400 truncate uppercase font-mono tracking-wider">
+                <span className="text-[10px] text-teal-700 truncate uppercase font-mono font-bold tracking-wider">
                   {user?.role?.replace('_', ' ') || 'STAFF'}
                 </span>
               </div>
@@ -246,7 +245,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               type="button"
               onClick={logout}
               title="Sign out of MedVerify"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700/80 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
               aria-label="Sign out"
             >
               <LogOut className="h-4 w-4" />

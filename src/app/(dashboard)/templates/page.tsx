@@ -72,7 +72,8 @@ export default function TemplatesPage() {
       ) : (
         <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50/70 border-slate-200 hover:bg-slate-50/70">
@@ -134,6 +135,44 @@ export default function TemplatesPage() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Responsive Cards View (APK Native Style) */}
+            <div className="md:hidden p-3 space-y-3">
+              {templates.map((tpl) => (
+                <Link
+                  key={tpl.id}
+                  href={`/templates/${tpl.id}`}
+                  className="block p-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 active:scale-[0.98] transition-all hover:border-slate-300"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-teal-50 text-teal-700 border border-teal-200/60">
+                        <Layers className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-slate-900 block">
+                          {tpl.name}
+                        </span>
+                        <span className="font-mono text-xs text-slate-500 font-semibold uppercase">
+                          {tpl.code}
+                        </span>
+                      </div>
+                    </div>
+                    <Badge variant="fit" className="text-[9px]">
+                      v{tpl.activeVersion?.versionNumber || 1}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                    <span>Created: {formatDate(tpl.createdAt)}</span>
+                    <span className="text-teal-700 font-semibold text-xs flex items-center gap-1">
+                      View Schema
+                      <Eye className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </CardContent>
         </Card>

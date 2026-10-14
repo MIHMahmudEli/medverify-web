@@ -289,14 +289,14 @@ export function ReportForm({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Medical Examination */}
         <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col">
-          <CardHeader className="py-3 px-4 sm:px-6 bg-slate-900 text-white flex flex-row items-center justify-between">
+          <CardHeader className="py-3 px-4 sm:px-6 bg-slate-50/80 border-b border-slate-100 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4 text-teal-400" />
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-white">
+              <Stethoscope className="h-4 w-4 text-teal-600" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-800">
                 Medical Physical Examination
               </CardTitle>
             </div>
-            <span className="text-[10px] text-teal-300 font-mono">15 Tests</span>
+            <span className="text-[10px] text-teal-700 bg-teal-50 border border-teal-200/80 px-2 py-0.5 rounded-full font-mono font-bold">15 Tests</span>
           </CardHeader>
 
           <CardContent className="p-4 sm:p-5 space-y-3.5 flex-1">
@@ -518,14 +518,14 @@ export function ReportForm({
 
         {/* Right: Laboratory Investigations */}
         <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden flex flex-col">
-          <CardHeader className="py-3 px-4 sm:px-6 bg-slate-900 text-white flex flex-row items-center justify-between">
+          <CardHeader className="py-3 px-4 sm:px-6 bg-slate-50/80 border-b border-slate-100 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <TestTube2 className="h-4 w-4 text-teal-400" />
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-white">
+              <TestTube2 className="h-4 w-4 text-teal-600" />
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-800">
                 Laboratory Investigations
               </CardTitle>
             </div>
-            <span className="text-[10px] text-teal-300 font-mono">16 Panels</span>
+            <span className="text-[10px] text-teal-700 bg-teal-50 border border-teal-200/80 px-2 py-0.5 rounded-full font-mono font-bold">16 Panels</span>
           </CardHeader>
 
           <CardContent className="p-4 sm:p-5 space-y-3.5 flex-1">
@@ -895,7 +895,7 @@ export function ReportForm({
             size="sm"
             disabled={loading}
             onClick={() => handleSave(true)}
-            className="h-9 px-4 text-xs rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs gap-1.5 w-full sm:w-auto"
+            className="h-9 px-4 text-xs rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs gap-1.5 w-full sm:w-auto active:scale-95 transition-all"
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
             <span>Submit for Review</span>
