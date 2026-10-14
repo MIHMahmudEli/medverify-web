@@ -242,9 +242,9 @@ export default function ReportDetailPage() {
     <div className="space-y-6 max-w-6xl mx-auto animate-fadeIn">
       {/* Top Header Card */}
       <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           {/* Left: Back button + Details */}
-          <div className="flex items-start sm:items-center gap-3.5">
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
             <Link href="/reports" aria-label="Back to reports">
               <Button
                 variant="outline"
@@ -255,33 +255,33 @@ export default function ReportDetailPage() {
               </Button>
             </Link>
 
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-mono">
                   Report {report.registrationNumber}
                 </h1>
                 {getStatusBadge()}
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
                   Rev #{report.currentRevisionNumber}
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
-                <span>Candidate: <strong className="text-slate-900 uppercase font-semibold">{p?.fullName || '—'}</strong></span>
+                <span className="truncate">Candidate: <strong className="text-slate-900 uppercase font-semibold">{p?.fullName || '—'}</strong></span>
                 <span className="text-slate-300 hidden sm:inline">•</span>
-                <span>Passport: <strong className="text-slate-800 font-mono font-semibold">{p?.passportNumber || '—'}</strong></span>
+                <span className="whitespace-nowrap">Passport: <strong className="text-slate-800 font-mono font-semibold">{p?.passportNumber || '—'}</strong></span>
                 <span className="text-slate-300 hidden sm:inline">•</span>
-                <span>Exam Date: <strong className="text-slate-800 font-semibold">{formatDate(report.registeredAt)}</strong></span>
+                <span className="whitespace-nowrap">Exam Date: <strong className="text-slate-800 font-semibold">{formatDate(report.registeredAt)}</strong></span>
               </div>
             </div>
           </div>
 
-          {/* Right: Actions Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+          {/* Right: Actions Toolbar - Strictly in one line */}
+          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto flex-shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-slate-100">
             {report.status === 'DRAFT' && (
               <>
-                <Link href={`/reports/${report.id}/edit`}>
-                  <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-slate-200 text-xs font-semibold">
+                <Link href={`/reports/${report.id}/edit`} className="flex-shrink-0">
+                  <Button variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl border-slate-200 text-xs font-semibold whitespace-nowrap">
                     <Edit className="h-3.5 w-3.5" />
                     <span>Edit Draft</span>
                   </Button>
@@ -291,7 +291,7 @@ export default function ReportDetailPage() {
                   size="sm"
                   disabled={actionLoading}
                   onClick={handleSubmitForReview}
-                  className="h-9 gap-1.5 rounded-xl text-xs font-semibold"
+                  className="h-9 px-3 gap-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex-shrink-0"
                 >
                   <Send className="h-3.5 w-3.5" />
                   <span>Submit for Review</span>
@@ -305,7 +305,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowFinalizeModal(true)}
-                className="h-9 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs"
+                className="h-9 px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>Finalize & Sign Off</span>
@@ -318,7 +318,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowAmendModal(true)}
-                className="h-9 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs"
+                className="h-9 px-3 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
               >
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
                 <span>Amend Report</span>
@@ -331,7 +331,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowRevokeModal(true)}
-                className="h-9 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs"
+                className="h-9 px-3 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
               >
                 <XCircle className="h-3.5 w-3.5" />
                 <span>Revoke</span>
@@ -344,18 +344,18 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleIssueCertificate}
-                className="h-9 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs"
+                className="h-9 px-3 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>Issue Certificate</span>
               </Button>
             )}
 
-            <Link href={`/reports/${report.id}/preview`}>
+            <Link href={`/reports/${report.id}/preview`} className="flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs"
+                className="h-9 px-3 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs whitespace-nowrap"
               >
                 <Printer className="h-3.5 w-3.5 text-teal-600" />
                 <span>Preview & Print</span>
@@ -366,7 +366,7 @@ export default function ReportDetailPage() {
               variant="default"
               size="sm"
               onClick={handleDownloadPdf}
-              className="h-9 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs"
+              className="h-9 px-3.5 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs whitespace-nowrap flex-shrink-0"
             >
               <FileDown className="h-3.5 w-3.5 text-teal-400" />
               <span>Download 2-Page PDF</span>
