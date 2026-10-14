@@ -244,8 +244,8 @@ export default function ReportDetailPage() {
       <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Left: Back button + Details */}
-          <div className="flex items-center gap-3.5 min-w-0">
-            <Link href="/reports" aria-label="Back to reports">
+          <div className="flex flex-col sm:flex-row items-center gap-3.5 min-w-0 w-full sm:w-auto text-center sm:text-left">
+            <Link href="/reports" aria-label="Back to reports" className="self-start sm:self-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -255,8 +255,8 @@ export default function ReportDetailPage() {
               </Button>
             </Link>
 
-            <div className="space-y-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-1.5 min-w-0 w-full sm:w-auto">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-mono">
                   Report {report.registrationNumber}
                 </h1>
@@ -266,7 +266,7 @@ export default function ReportDetailPage() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-1 text-xs text-slate-500">
                 <span className="truncate">Candidate: <strong className="text-slate-900 uppercase font-semibold">{p?.fullName || '—'}</strong></span>
                 <span className="text-slate-300 hidden sm:inline">•</span>
                 <span className="whitespace-nowrap">Passport: <strong className="text-slate-800 font-mono font-semibold">{p?.passportNumber || '—'}</strong></span>
@@ -276,14 +276,20 @@ export default function ReportDetailPage() {
             </div>
           </div>
 
-          {/* Right: Actions Toolbar - Strictly in one line on the right side of the screen */}
-          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto flex-shrink-0 ml-auto pt-2 sm:pt-0">
+          {/* Right: Actions Toolbar - Centered and evenly distributed on mobile, icon-only on mobile */}
+          <div className="flex items-center justify-evenly sm:justify-end gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100">
             {report.status === 'DRAFT' && (
               <>
                 <Link href={`/reports/${report.id}/edit`} className="flex-shrink-0">
-                  <Button variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl border-slate-200 text-xs font-semibold whitespace-nowrap">
-                    <Edit className="h-3.5 w-3.5" />
-                    <span>Edit Draft</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-slate-200 text-xs font-semibold whitespace-nowrap"
+                    title="Edit Draft"
+                    aria-label="Edit Draft"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span className="hidden sm:inline">Edit Draft</span>
                   </Button>
                 </Link>
                 <Button
@@ -291,10 +297,12 @@ export default function ReportDetailPage() {
                   size="sm"
                   disabled={actionLoading}
                   onClick={handleSubmitForReview}
-                  className="h-9 px-3 gap-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex-shrink-0"
+                  className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex-shrink-0"
+                  title="Submit for Review"
+                  aria-label="Submit for Review"
                 >
-                  <Send className="h-3.5 w-3.5" />
-                  <span>Submit for Review</span>
+                  <Send className="h-4 w-4" />
+                  <span className="hidden sm:inline">Submit for Review</span>
                 </Button>
               </>
             )}
@@ -305,10 +313,12 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowFinalizeModal(true)}
-                className="h-9 px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                className="h-9 px-2.5 sm:px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                title="Finalize & Sign Off"
+                aria-label="Finalize & Sign Off"
               >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Finalize & Sign Off</span>
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Finalize & Sign Off</span>
               </Button>
             )}
 
@@ -318,10 +328,12 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowAmendModal(true)}
-                className="h-9 px-3 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                title="Amend Report"
+                aria-label="Amend Report"
               >
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                <span>Amend Report</span>
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <span className="hidden sm:inline">Amend Report</span>
               </Button>
             )}
 
@@ -331,10 +343,12 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowRevokeModal(true)}
-                className="h-9 px-3 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                title="Revoke Report"
+                aria-label="Revoke Report"
               >
-                <XCircle className="h-3.5 w-3.5" />
-                <span>Revoke</span>
+                <XCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Revoke</span>
               </Button>
             )}
 
@@ -344,10 +358,12 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleIssueCertificate}
-                className="h-9 px-3 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
+                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
+                title="Issue Certificate"
+                aria-label="Issue Certificate"
               >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Issue Certificate</span>
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Issue Certificate</span>
               </Button>
             )}
 
@@ -355,10 +371,12 @@ export default function ReportDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 px-3 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs whitespace-nowrap"
+                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs whitespace-nowrap"
+                title="Preview & Print"
+                aria-label="Preview & Print"
               >
-                <Printer className="h-3.5 w-3.5 text-teal-600" />
-                <span>Preview & Print</span>
+                <Printer className="h-4 w-4 text-teal-600" />
+                <span className="hidden sm:inline">Preview & Print</span>
               </Button>
             </Link>
 
@@ -366,10 +384,12 @@ export default function ReportDetailPage() {
               variant="default"
               size="sm"
               onClick={handleDownloadPdf}
-              className="h-9 px-3.5 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs whitespace-nowrap flex-shrink-0"
+              className="h-9 px-2.5 sm:px-3.5 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs whitespace-nowrap flex-shrink-0"
+              title="Download Combined 2-Page PDF"
+              aria-label="Download Combined 2-Page PDF"
             >
-              <FileDown className="h-3.5 w-3.5 text-teal-400" />
-              <span>Download 2-Page PDF</span>
+              <FileDown className="h-4 w-4 text-teal-400" />
+              <span className="hidden sm:inline">Download 2-Page PDF</span>
             </Button>
           </div>
         </div>
@@ -378,13 +398,13 @@ export default function ReportDetailPage() {
       {/* Official Certificate Banner */}
       {certificate && (
         <Card className="bg-gradient-to-r from-slate-900 via-slate-850 to-teal-950 text-white border border-teal-800/40 shadow-float rounded-2xl overflow-hidden">
-          <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
-            <div className="flex items-center gap-3.5">
+          <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3.5 w-full sm:w-auto">
               <div className="h-11 w-11 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center flex-shrink-0 text-teal-300 shadow-inner">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                   <span className="font-bold text-sm tracking-wide font-mono text-teal-200">
                     {certificate.certificateNumber}
                   </span>
@@ -392,32 +412,36 @@ export default function ReportDetailPage() {
                     OFFICIAL CERTIFICATE {certificate.status}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-slate-300">
+                <p className="text-[11px] text-slate-300 text-center sm:text-left">
                   Issued: {formatDate(certificate.issuedAt)} • Two-Page Print System Active
                   {certificate.expiresAt && ` • Valid until: ${formatDate(certificate.expiresAt)}`}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Link href={`/verify/${certificate.verificationToken}`} target="_blank">
+            <div className="flex items-center justify-evenly sm:justify-end gap-2 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-teal-800/40">
+              <Link href={`/verify/${certificate.verificationToken}`} target="_blank" className="flex-shrink-0">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 text-xs text-white border-slate-700 bg-slate-800/80 hover:bg-slate-700 gap-1.5 rounded-lg"
+                  className="h-9 px-3 text-xs text-white border-slate-700 bg-slate-800/80 hover:bg-slate-700 gap-1.5 rounded-xl"
+                  title="Verify Portal"
+                  aria-label="Verify Portal"
                 >
-                  <ExternalLink className="h-3 w-3" />
-                  <span>Verify Portal</span>
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="hidden sm:inline">Verify Portal</span>
                 </Button>
               </Link>
 
-              <Link href={`/reports/${report.id}/preview`}>
+              <Link href={`/reports/${report.id}/preview`} className="flex-shrink-0">
                 <Button
                   size="sm"
-                  className="h-8 text-xs bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-1.5 rounded-lg shadow-2xs"
+                  className="h-9 px-3 text-xs bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-1.5 rounded-xl shadow-2xs"
+                  title="Print 2-Page PDF"
+                  aria-label="Print 2-Page PDF"
                 >
-                  <Printer className="h-3 w-3" />
-                  <span>Print 2-Page PDF</span>
+                  <Printer className="h-4 w-4" />
+                  <span className="hidden sm:inline">Print 2-Page PDF</span>
                 </Button>
               </Link>
             </div>
