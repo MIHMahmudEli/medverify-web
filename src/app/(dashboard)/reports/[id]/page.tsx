@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
-import { formatDate, calculateAge } from '@/lib/utils';
+import { formatDate, calculateAge, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import {
   FileDown,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   History,
   QrCode,
   Edit,
@@ -57,13 +58,16 @@ export default function ReportDetailPage() {
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
   const [finalizeStatus, setFinalizeStatus] = useState<'FIT' | 'UNFIT' | 'PENDING_INVESTIGATION'>('FIT');
   const [finalizeRemarks, setFinalizeRemarks] = useState('NORMAL');
+  const [finalizeError, setFinalizeError] = useState<string | null>(null);
 
   const [showAmendModal, setShowAmendModal] = useState(false);
   const [amendReason, setAmendReason] = useState('');
   const [amendFitness, setAmendFitness] = useState<'FIT' | 'UNFIT' | 'PENDING_INVESTIGATION'>('FIT');
+  const [amendError, setAmendError] = useState<string | null>(null);
 
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const [revokeReason, setRevokeReason] = useState('');
+  const [revokeError, setRevokeError] = useState<string | null>(null);
   const [certificate, setCertificate] = useState<any>(null);
 
   const loadReport = async () => {
@@ -96,7 +100,7 @@ export default function ReportDetailPage() {
 
   const handleFinalize = async () => {
     setActionLoading(true);
-    setError(null);
+    setFinalizeError(null);
     try {
       await api.post(`/reports/${id}/finalize`, {
         finalMedicalStatus: finalizeStatus,
@@ -105,7 +109,7 @@ export default function ReportDetailPage() {
       setShowFinalizeModal(false);
       await loadReport();
     } catch (err: any) {
-      setError(err.message || 'Failed to finalize report');
+      setFinalizeError(err.message || 'Failed to finalize report');
     } finally {
       setActionLoading(false);
     }
@@ -113,11 +117,11 @@ export default function ReportDetailPage() {
 
   const handleAmend = async () => {
     if (!amendReason.trim()) {
-      setError('Please provide a reason for amending this finalized report');
+      setAmendError('Please provide a reason for amending this finalized report.');
       return;
     }
     setActionLoading(true);
-    setError(null);
+    setAmendError(null);
     try {
       await api.post(`/reports/${id}/amend`, {
         reasonForChange: amendReason,
@@ -128,7 +132,7 @@ export default function ReportDetailPage() {
       setAmendReason('');
       await loadReport();
     } catch (err: any) {
-      setError(err.message || 'Failed to amend report');
+      setAmendError(err.message || 'Failed to amend report');
     } finally {
       setActionLoading(false);
     }
@@ -136,11 +140,11 @@ export default function ReportDetailPage() {
 
   const handleRevoke = async () => {
     if (!revokeReason.trim()) {
-      setError('Please provide a reason for revoking this report');
+      setRevokeError('Please provide an official reason for revoking this medical report.');
       return;
     }
     setActionLoading(true);
-    setError(null);
+    setRevokeError(null);
     try {
       await api.post(`/reports/${id}/revoke`, {
         revocationReason: revokeReason,
@@ -149,7 +153,7 @@ export default function ReportDetailPage() {
       setRevokeReason('');
       await loadReport();
     } catch (err: any) {
-      setError(err.message || 'Failed to revoke report');
+      setRevokeError(err.message || 'Failed to revoke report');
     } finally {
       setActionLoading(false);
     }
@@ -312,7 +316,10 @@ export default function ReportDetailPage() {
                 variant="clinical"
                 size="sm"
                 disabled={actionLoading}
-                onClick={() => setShowFinalizeModal(true)}
+                onClick={() => {
+                  setFinalizeError(null);
+                  setShowFinalizeModal(true);
+                }}
                 className="h-9 px-2.5 sm:px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
                 title="Finalize & Sign Off"
                 aria-label="Finalize & Sign Off"
@@ -327,7 +334,10 @@ export default function ReportDetailPage() {
                 variant="outline"
                 size="sm"
                 disabled={actionLoading}
-                onClick={() => setShowAmendModal(true)}
+                onClick={() => {
+                  setAmendError(null);
+                  setShowAmendModal(true);
+                }}
                 className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
                 title="Amend Report"
                 aria-label="Amend Report"
@@ -342,7 +352,10 @@ export default function ReportDetailPage() {
                 variant="destructive"
                 size="sm"
                 disabled={actionLoading}
-                onClick={() => setShowRevokeModal(true)}
+                onClick={() => {
+                  setRevokeError(null);
+                  setShowRevokeModal(true);
+                }}
                 className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
                 title="Revoke Report"
                 aria-label="Revoke Report"
@@ -889,9 +902,21 @@ export default function ReportDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
+                {finalizeError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">
+                      {finalizeError}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Final Medical Fitness Decision *
+                    Medical Fitness Decision *
                   </label>
                   <select
                     value={finalizeStatus}
@@ -955,6 +980,18 @@ export default function ReportDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
+                {amendError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">
+                      {amendError}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                     Reason for Amendment *
@@ -962,9 +999,17 @@ export default function ReportDetailPage() {
                   <Input
                     required
                     value={amendReason}
-                    onChange={(e) => setAmendReason(e.target.value)}
+                    onChange={(e) => {
+                      setAmendReason(e.target.value);
+                      if (amendError) setAmendError(null);
+                    }}
                     placeholder="e.g. Corrected Blood Group, repeated lab panel"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      "h-10 text-xs rounded-xl transition-all",
+                      amendError && !amendReason.trim()
+                        ? "border-amber-400 focus-visible:ring-amber-400/40 ring-1 ring-amber-400 bg-amber-50/30"
+                        : ""
+                    )}
                   />
                 </div>
 
@@ -1022,6 +1067,18 @@ export default function ReportDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
+                {revokeError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">
+                      {revokeError}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                     Official Revocation Reason *
@@ -1029,9 +1086,17 @@ export default function ReportDetailPage() {
                   <Input
                     required
                     value={revokeReason}
-                    onChange={(e) => setRevokeReason(e.target.value)}
+                    onChange={(e) => {
+                      setRevokeReason(e.target.value);
+                      if (revokeError) setRevokeError(null);
+                    }}
                     placeholder="e.g. Identity fraud, clinical discrepancy"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      "h-10 text-xs rounded-xl transition-all",
+                      revokeError && !revokeReason.trim()
+                        ? "border-rose-400 focus-visible:ring-rose-400/40 ring-1 ring-rose-400 bg-rose-50/30"
+                        : ""
+                    )}
                   />
                 </div>
               </CardContent>
