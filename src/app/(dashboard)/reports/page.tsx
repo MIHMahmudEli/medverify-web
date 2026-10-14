@@ -3,15 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/lib/auth-context';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TableSkeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/ui/page-header';
 import { SearchFilterBar } from '@/components/ui/search-filter-bar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { ModalPortal } from '@/components/ui/modal-portal';
 import {
   Table,
   TableHeader,
@@ -34,10 +36,13 @@ import {
   FileSpreadsheet,
   FilePlus,
   Printer,
+  Trash2,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ReportsPage() {
+  const { user } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>({
     total: 0,
@@ -51,6 +56,25 @@ export default function ReportsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [reportToDelete, setReportToDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeleteReport = async () => {
+    if (!reportToDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await api.delete(`/reports/${reportToDelete.id}`);
+      setReportToDelete(null);
+      await loadReports(meta.page, statusFilter, search);
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete medical report');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const loadReports = async (page = 1, currentFilter = statusFilter, searchTerm = search) => {
     setLoading(true);
@@ -286,6 +310,20 @@ export default function ReportsPage() {
                               </Button>
                             </Link>
                           )}
+                          {user?.role === 'SUPER_ADMIN' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setDeleteError(null);
+                                setReportToDelete(report);
+                              }}
+                              className="h-7 px-2 text-[11px] gap-1 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                              title="Delete Medical Report"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -309,7 +347,24 @@ export default function ReportsPage() {
                         {report.registrationNumber}
                       </span>
                     </div>
-                    {getStatusBadge(report.status, report.finalMedicalStatus)}
+                    <div className="flex items-center gap-1.5">
+                      {getStatusBadge(report.status, report.finalMedicalStatus)}
+                      {user?.role === 'SUPER_ADMIN' && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDeleteError(null);
+                            setReportToDelete(report);
+                          }}
+                          className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                          title="Delete Medical Report"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
@@ -382,6 +437,70 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* SUPER ADMIN DELETE REPORT MODAL */}
+      {reportToDelete && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-rose-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
+                <CardTitle className="text-base font-bold text-rose-800 flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-rose-600" />
+                  <span>Delete Medical Report</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-rose-600/90">
+                  Irreversible Super Admin Action: Permanently removes this examination file and associated records.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                {deleteError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">{deleteError}</div>
+                  </div>
+                )}
+
+                <div className="p-3.5 bg-rose-50/40 rounded-xl border border-rose-100 text-xs text-slate-700 space-y-2">
+                  <p>
+                    Are you sure you want to permanently delete report{' '}
+                    <strong className="text-slate-900 font-mono font-bold">{reportToDelete.registrationNumber}</strong> for candidate{' '}
+                    <strong className="text-slate-900 font-bold uppercase">{reportToDelete.patient?.fullName || 'Candidate'}</strong>{' '}
+                    (Passport: <span className="font-mono font-bold text-slate-900">{reportToDelete.patient?.passportNumber || '—'}</span>)?
+                  </p>
+                  <p className="text-rose-700 font-medium text-[11px]">
+                    ⚠️ This will permanently erase this examination file, revision records, generated certificates, and verification tokens. This action cannot be undone.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting}
+                  onClick={() => setReportToDelete(null)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleting}
+                  onClick={handleDeleteReport}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs gap-1.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>{deleting ? 'Deleting...' : 'Confirm Permanent Deletion'}</span>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }
+

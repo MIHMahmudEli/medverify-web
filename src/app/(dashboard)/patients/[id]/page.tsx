@@ -4,14 +4,16 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/lib/auth-context';
 import { formatDate, calculateAge } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { PatientProfileSkeleton } from '@/components/ui/skeleton';
+import { ModalPortal } from '@/components/ui/modal-portal';
 import {
   Table,
   TableHeader,
@@ -35,14 +37,36 @@ import {
   Phone,
   Mail,
   UserCheck,
+  Trash2,
+  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function PatientDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [patient, setPatient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeletePatient = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await api.delete(`/patients/${id}`);
+      setShowDeleteModal(false);
+      router.push('/patients');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete candidate record');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const loadPatient = async () => {
     setLoading(true);
@@ -133,6 +157,21 @@ export default function PatientDetailPage() {
                 <span>New Examination Report</span>
               </Button>
             </Link>
+
+            {user?.role === 'SUPER_ADMIN' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setDeleteError(null);
+                  setShowDeleteModal(true);
+                }}
+                className="gap-1.5 rounded-lg border-rose-200 text-rose-700 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 font-semibold"
+              >
+                <Trash2 className="h-3.5 w-3.5 text-rose-600" />
+                <span>Delete Profile</span>
+              </Button>
+            )}
           </>
         }
       />
@@ -393,6 +432,70 @@ export default function PatientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* SUPER ADMIN DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-rose-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
+                <CardTitle className="text-base font-bold text-rose-800 flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-rose-600" />
+                  <span>Delete Candidate Profile</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-rose-600/90">
+                  Irreversible Super Admin Action: Permanently removes profile and all associated data.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                {deleteError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">{deleteError}</div>
+                  </div>
+                )}
+
+                <div className="p-3.5 bg-rose-50/40 rounded-xl border border-rose-100 text-xs text-slate-700 space-y-2">
+                  <p>
+                    Are you sure you want to permanently delete candidate{' '}
+                    <strong className="text-slate-900 font-bold uppercase">{patient.fullName}</strong>{' '}
+                    (Passport:{' '}
+                    <span className="font-mono font-bold text-slate-900">{patient.passportNumber}</span>)?
+                  </p>
+                  <p className="text-rose-700 font-medium text-[11px]">
+                    ⚠️ This will immediately purge all clinical examination reports, revision records, verified certificates, and tokens linked to this candidate. This action cannot be undone.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting}
+                  onClick={() => setShowDeleteModal(false)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleting}
+                  onClick={handleDeletePatient}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs gap-1.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>{deleting ? 'Deleting...' : 'Confirm Permanent Deletion'}</span>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }
+

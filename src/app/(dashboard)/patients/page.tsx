@@ -3,14 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/lib/auth-context';
 import { formatDate, calculateAge } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { TableSkeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/ui/page-header';
 import { SearchFilterBar } from '@/components/ui/search-filter-bar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { ModalPortal } from '@/components/ui/modal-portal';
 import {
   Table,
   TableHeader,
@@ -30,6 +32,8 @@ import {
   MapPin,
   Calendar,
   Building,
+  Trash2,
+  AlertCircle,
 } from 'lucide-react';
 
 interface Patient {
@@ -59,6 +63,7 @@ interface PaginatedResponse {
 }
 
 export default function PatientsPage() {
+  const { user } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [meta, setMeta] = useState<PaginatedResponse['meta']>({
     total: 0,
@@ -71,6 +76,25 @@ export default function PatientsPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeletePatient = async () => {
+    if (!patientToDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await api.delete(`/patients/${patientToDelete.id}`);
+      setPatientToDelete(null);
+      await loadPatients(meta.page, search);
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete candidate record');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const loadPatients = async (page = 1, searchTerm = search) => {
     setLoading(true);
@@ -254,16 +278,32 @@ export default function PatientsPage() {
                         {formatDate(p.createdAt)}
                       </TableCell>
                       <TableCell className="text-right pr-6">
-                        <Link href={`/patients/${p.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2.5 text-[11px] gap-1 rounded-lg hover:border-slate-400"
-                          >
-                            <Eye className="h-3 w-3" />
-                            <span>Details</span>
-                          </Button>
-                        </Link>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link href={`/patients/${p.id}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2.5 text-[11px] gap-1 rounded-lg hover:border-slate-400"
+                            >
+                              <Eye className="h-3 w-3" />
+                              <span>Details</span>
+                            </Button>
+                          </Link>
+                          {user?.role === 'SUPER_ADMIN' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setDeleteError(null);
+                                setPatientToDelete(p);
+                              }}
+                              className="h-7 px-2 text-[11px] gap-1 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                              title="Delete Candidate Profile"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -299,6 +339,22 @@ export default function PatientsPage() {
                         </div>
                       </div>
                     </div>
+
+                    {user?.role === 'SUPER_ADMIN' && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDeleteError(null);
+                          setPatientToDelete(p);
+                        }}
+                        className="p-1.5 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors flex-shrink-0"
+                        title="Delete Candidate Profile"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
@@ -362,6 +418,70 @@ export default function PatientsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* SUPER ADMIN DELETE CONFIRMATION MODAL */}
+      {patientToDelete && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-rose-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
+                <CardTitle className="text-base font-bold text-rose-800 flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-rose-600" />
+                  <span>Delete Candidate Profile</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-rose-600/90">
+                  Irreversible Super Admin Action: Permanently removes candidate profile and all associated reports.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                {deleteError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">{deleteError}</div>
+                  </div>
+                )}
+
+                <div className="p-3.5 bg-rose-50/40 rounded-xl border border-rose-100 text-xs text-slate-700 space-y-2">
+                  <p>
+                    Are you sure you want to permanently delete candidate{' '}
+                    <strong className="text-slate-900 font-bold uppercase">{patientToDelete.fullName}</strong>{' '}
+                    (Passport:{' '}
+                    <span className="font-mono font-bold text-slate-900">{patientToDelete.passportNumber}</span>)?
+                  </p>
+                  <p className="text-rose-700 font-medium text-[11px]">
+                    ⚠️ This will immediately purge all clinical examination reports, revision records, verified certificates, and tokens linked to this candidate. This action cannot be undone.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={deleting}
+                  onClick={() => setPatientToDelete(null)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleting}
+                  onClick={handleDeletePatient}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs gap-1.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>{deleting ? 'Deleting...' : 'Confirm Permanent Deletion'}</span>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }
+

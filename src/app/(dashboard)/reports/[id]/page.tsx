@@ -42,6 +42,7 @@ import {
   ShieldCheck,
   Building,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
 
 export default function ReportDetailPage() {
@@ -68,6 +69,10 @@ export default function ReportDetailPage() {
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const [revokeReason, setRevokeReason] = useState('');
   const [revokeError, setRevokeError] = useState<string | null>(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const [certificate, setCertificate] = useState<any>(null);
 
   const loadReport = async () => {
@@ -154,6 +159,20 @@ export default function ReportDetailPage() {
       await loadReport();
     } catch (err: any) {
       setRevokeError(err.message || 'Failed to revoke report');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteReport = async () => {
+    setActionLoading(true);
+    setDeleteError(null);
+    try {
+      await api.delete(`/reports/${id}`);
+      setShowDeleteModal(false);
+      router.push('/reports');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete report');
     } finally {
       setActionLoading(false);
     }
@@ -404,6 +423,24 @@ export default function ReportDetailPage() {
               <FileDown className="h-4 w-4 text-teal-400" />
               <span className="hidden sm:inline">Download 2-Page PDF</span>
             </Button>
+
+            {user?.role === 'SUPER_ADMIN' && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={actionLoading}
+                onClick={() => {
+                  setDeleteError(null);
+                  setShowDeleteModal(true);
+                }}
+                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-rose-200 text-rose-700 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                title="Delete Medical Report"
+                aria-label="Delete Medical Report"
+              >
+                <Trash2 className="h-4 w-4 text-rose-600" />
+                <span className="hidden sm:inline">Delete</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -1123,6 +1160,70 @@ export default function ReportDetailPage() {
           </div>
         </ModalPortal>
       )}
+
+      {/* SUPER ADMIN DELETE REPORT MODAL */}
+      {showDeleteModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-rose-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
+                <CardTitle className="text-base font-bold text-rose-800 flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-rose-600" />
+                  <span>Delete Medical Examination Report</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-rose-600/90">
+                  Irreversible Super Admin Action: Permanently removes this report file and all associated records.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                {deleteError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5 animate-fadeInFast"
+                  >
+                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 font-semibold leading-snug">{deleteError}</div>
+                  </div>
+                )}
+
+                <div className="p-3.5 bg-rose-50/40 rounded-xl border border-rose-100 text-xs text-slate-700 space-y-2">
+                  <p>
+                    Are you sure you want to permanently delete report{' '}
+                    <strong className="text-slate-900 font-mono font-bold">{report.registrationNumber}</strong> for candidate{' '}
+                    <strong className="text-slate-900 font-bold uppercase">{report.patient?.fullName || 'Candidate'}</strong>{' '}
+                    (Passport: <span className="font-mono font-bold text-slate-900">{report.patient?.passportNumber || '—'}</span>)?
+                  </p>
+                  <p className="text-rose-700 font-medium text-[11px]">
+                    ⚠️ This will permanently erase this examination file, revision records, generated certificates, and verification tokens. This action cannot be undone.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={() => setShowDeleteModal(false)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={handleDeleteReport}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs gap-1.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>{actionLoading ? 'Deleting...' : 'Confirm Permanent Deletion'}</span>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 }
+
