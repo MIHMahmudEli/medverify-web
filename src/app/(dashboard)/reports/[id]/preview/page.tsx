@@ -40,12 +40,13 @@ export default function ReportPdfPreviewPage() {
     setLoading(true);
     setError(null);
     try {
-      let endpoint = `/reports/${id}/print-pdf`;
+      const ts = Date.now();
+      let endpoint = `/reports/${id}/print-pdf?t=${ts}`;
       if (mode === 'CERTIFICATE_ONLY') {
         const cId = certData?.id || certificate?.id;
-        endpoint = cId ? `/certificates/${cId}/pdf` : `/reports/${id}/print-pdf`;
+        endpoint = cId ? `/certificates/${cId}/pdf?t=${ts}` : `/reports/${id}/print-pdf?t=${ts}`;
       } else if (mode === 'REPORT_ONLY') {
-        endpoint = `/reports/${id}/pdf`;
+        endpoint = `/reports/${id}/pdf?t=${ts}`;
       }
 
       const blob = await api.downloadBlob(endpoint);
