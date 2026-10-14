@@ -460,19 +460,26 @@ export default function PublicVerificationPage() {
               </div>
 
               {/* Photo Box on Certificate (Exact Match) */}
-              <div className="p-2.5 flex flex-col items-center justify-center bg-slate-50">
-                <div className="w-24 sm:w-28 h-28 sm:h-32 rounded border border-slate-300 bg-white flex items-center justify-center text-slate-400 shadow-2xs overflow-hidden relative">
+              <div className="p-2.5 print:p-1.5 flex flex-col items-center justify-center bg-slate-50">
+                <div className="w-24 sm:w-28 h-28 sm:h-32 print:w-20 print:h-24 rounded border border-slate-300 bg-white flex items-center justify-center text-slate-400 shadow-2xs overflow-hidden relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoSrc}
                     alt="Candidate Photograph"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/default_photo.png';
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.fallbackTried && pat?.photoUrl) {
+                        target.dataset.fallbackTried = 'true';
+                        const clean = pat.photoUrl.replace(/^\//, '').split('/').pop();
+                        target.src = `${API_BASE}/api/v1/uploads/file/${clean}`;
+                      } else {
+                        target.src = '/default_photo.png';
+                      }
                     }}
                   />
                 </div>
-                <span className="text-[8px] text-slate-500 uppercase mt-1 font-mono font-medium">Photograph</span>
+                <span className="text-[8px] text-slate-500 uppercase mt-1 font-mono font-medium print:hidden">Photograph</span>
               </div>
             </div>
           </div>
@@ -665,15 +672,15 @@ export default function PublicVerificationPage() {
 
       {/* 4. PAGE 2: DETAILED MEDICAL TEST REPORT (EXACT REPLICATION OF PDF REPORT LAYOUT) */}
       <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-7 relative print:shadow-none print:border-none print:p-0 print-page-2">
-        <div className="border border-[#212529] p-3 sm:p-5 rounded-sm space-y-3 bg-white">
+        <div className="border border-[#212529] p-3 sm:p-5 print:p-2 rounded-sm space-y-3 print:space-y-1 bg-white">
           
           {/* 1. TOP HEADER BANNER (EXACTLY MATCHING PDF BANNER) */}
-          <div className="w-full overflow-hidden flex items-center justify-center border-b border-[#212529] pb-2">
+          <div className="w-full overflow-hidden flex items-center justify-center border-b border-[#212529] pb-2 print:pb-0.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/header_banner.png"
               alt="MYSA Medical Services Header Banner"
-              className="w-full h-auto object-contain max-h-24 sm:max-h-28"
+              className="w-full h-auto object-contain max-h-24 sm:max-h-28 print:max-h-12"
               onError={(e) => {
                 (e.target as HTMLElement).style.display = 'none';
               }}
@@ -681,20 +688,20 @@ export default function PublicVerificationPage() {
           </div>
 
           {/* 2. DOCUMENT TITLE */}
-          <div className="text-center py-0.5">
-            <h2 className="text-xs sm:text-sm font-bold text-[#212529] tracking-wider uppercase font-sans">
+          <div className="text-center py-0.5 print:py-0">
+            <h2 className="text-xs sm:text-sm font-bold text-[#212529] tracking-wider uppercase font-sans print:text-[11px] print:leading-none">
               MEDICAL TEST REPORT
             </h2>
           </div>
 
           {/* 3. REGISTRATION NUMBER, BARCODE & FINGERPRINT */}
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-1 print:pt-0">
             <div>
-              <div className="text-xs font-bold text-[#212529] uppercase font-sans">
+              <div className="text-xs font-bold text-[#212529] uppercase font-sans print:text-[10px]">
                 REG NO: <span className="font-mono">{regNumber}</span>
               </div>
               {/* Deterministic Barcode matching the PDF drawBarcode graphic */}
-              <div className="flex items-center gap-[1.5px] mt-1 h-3.5">
+              <div className="flex items-center gap-[1.5px] mt-1 print:mt-0.5 h-3.5 print:h-2.5">
                 {[3, 1.5, 1.5, 1.5, 4, 3, 1.5, 4, 3, 3, 1.5, 1.5, 3, 1.5, 4, 1.5, 3, 3, 1.5, 4, 1.5, 3, 1.5, 4, 3, 1.5, 3].map((w, idx) => (
                   <span
                     key={idx}
@@ -705,83 +712,89 @@ export default function PublicVerificationPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className="text-right text-[11px] font-bold text-[#212529]">
+            <div className="flex items-center gap-4 sm:gap-6 print:gap-3">
+              <div className="text-right text-[11px] font-bold text-[#212529] print:text-[9px]">
                 Reg. Date: {formatDate(data?.registeredAt || rep?.examinationDate)}
               </div>
-              <div className="border border-[#212529] px-3 py-1 text-[10px] font-bold text-[#212529] bg-white">
+              <div className="border border-[#212529] px-3 py-1 print:px-2 print:py-0.5 text-[10px] print:text-[8px] font-bold text-[#212529] bg-white">
                 Finger Print
               </div>
             </div>
           </div>
 
           {/* 4. PATIENT INFO TABLE & PHOTO BOX (EXACT 4-COLUMN + PHOTO LAYOUT) */}
-          <div className="border border-[#212529] grid grid-cols-1 sm:grid-cols-4 bg-white text-xs">
+          <div className="border border-[#212529] grid grid-cols-1 sm:grid-cols-4 print:grid-cols-4 bg-white text-xs">
             {/* Left 3 columns: Candidate Details Table */}
-            <div className="sm:col-span-3 divide-y divide-[#212529] border-b sm:border-b-0 sm:border-r border-[#212529]">
+            <div className="sm:col-span-3 print:col-span-3 divide-y divide-[#212529] border-b sm:border-b-0 print:border-b-0 sm:border-r print:border-r border-[#212529]">
               {/* Row 1 */}
-              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">NAME</div>
-                <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.fullName || 'MOHAMMAD FARUK'}</div>
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">COUNTRY</div>
-                <div className="p-1.5 font-bold text-[#212529] uppercase truncate">{pat?.destinationCountry || 'UAE/DUBAI'}</div>
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">NAME</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529] uppercase truncate">{pat?.fullName || 'MOHAMMAD FARUK'}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">COUNTRY</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529] uppercase truncate">{pat?.destinationCountry || 'UAE/DUBAI'}</div>
               </div>
               {/* Row 2 */}
-              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">PASSPORT NO</div>
-                <div className="p-1.5 font-bold text-[#212529] uppercase font-mono">{pat?.passportNumber || 'TEST675823'}</div>
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">BIRTH DATE</div>
-                <div className="p-1.5 font-bold text-[#212529]">{formatDate(pat?.dateOfBirth)}</div>
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">PASSPORT NO</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529] uppercase font-mono">{pat?.passportNumber || 'TEST675823'}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">BIRTH DATE</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{formatDate(pat?.dateOfBirth)}</div>
               </div>
               {/* Row 3 */}
-              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">MARITAL STATUS</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.maritalStatus || 'Married'}</div>
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">RELIGION</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.religion || 'Islam'}</div>
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">MARITAL STATUS</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{pat?.maritalStatus || 'Married'}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">RELIGION</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{pat?.religion || 'Islam'}</div>
               </div>
               {/* Row 4 */}
-              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">AGE</div>
-                <div className="p-1.5 font-bold text-[#212529]">{ageDisplay}</div>
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">GENDER</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.gender || 'Male'}</div>
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">AGE</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{ageDisplay}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{pat?.gender || 'Male'}</div>
               </div>
               {/* Row 5 */}
-              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">NATIONALITY</div>
-                <div className="p-1.5 font-bold text-[#212529] uppercase">{pat?.nationality || 'Bangladeshi'}</div>
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">HEIGHT (CM)</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.heightCm ? `${pat.heightCm}` : '175.00'}</div>
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">NATIONALITY</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529] uppercase">{pat?.nationality || 'Bangladeshi'}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">HEIGHT (CM)</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{pat?.heightCm ? `${pat.heightCm}` : ''}</div>
               </div>
               {/* Row 6 */}
-              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px]">
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">AGENCY</div>
-                <div className="p-1.5 font-bold text-[#212529] truncate">{pat?.agency || 'Al-Hasan Manpower'}</div>
-                <div className="p-1.5 bg-slate-50 font-normal text-[#212529]">WEIGHT (KG)</div>
-                <div className="p-1.5 font-bold text-[#212529]">{pat?.weightKg ? `${pat.weightKg}` : '68.00'}</div>
+              <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">AGENCY</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529] truncate">{pat?.agency || 'Al-Hasan Manpower'}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">WEIGHT (KG)</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{pat?.weightKg ? `${pat.weightKg}` : ''}</div>
               </div>
             </div>
 
             {/* Far Right: Patient Photo Box */}
-            <div className="p-1.5 flex flex-col items-center justify-center bg-white">
-              <div className="w-24 sm:w-28 h-28 sm:h-32 border border-slate-300 bg-white flex items-center justify-center overflow-hidden relative shadow-2xs">
+            <div className="p-1.5 print:p-1 flex flex-col items-center justify-center bg-white">
+              <div className="w-24 sm:w-28 h-28 sm:h-32 print:w-20 print:h-22 border border-slate-300 bg-white flex items-center justify-center overflow-hidden relative shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photoSrc}
                   alt="Candidate Photograph"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/default_photo.png';
+                    const target = e.target as HTMLImageElement;
+                    if (!target.dataset.fallbackTried && pat?.photoUrl) {
+                      target.dataset.fallbackTried = 'true';
+                      const clean = pat.photoUrl.replace(/^\//, '').split('/').pop();
+                      target.src = `${API_BASE}/api/v1/uploads/file/${clean}`;
+                    } else {
+                      target.src = '/default_photo.png';
+                    }
                   }}
                 />
               </div>
-              <span className="text-[8px] text-slate-500 uppercase mt-0.5 font-mono">Patient Photo</span>
+              <span className="text-[8px] print:text-[7px] text-slate-500 uppercase mt-0.5 font-mono print:hidden">Patient Photo</span>
             </div>
           </div>
 
           {/* 5. CLINICAL EXAMINATION & LABORATORY TABLES (TWO SIDE-BY-SIDE TABLES) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-3 print:gap-2 text-xs pt-1 print:pt-0.5">
             {/* Left Column: Medical Examination Table */}
             <div className="border border-[#212529] text-[10px] bg-white divide-y divide-[#212529]">
               {/* Header */}
@@ -979,39 +992,46 @@ export default function PublicVerificationPage() {
           </div>
 
           {/* 6. STATUS, CHEST X-RAY & CRYPTOGRAPHIC QR VERIFICATION SECTION */}
-          <div className="pt-3 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div className="pt-3 print:pt-1 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-2 items-center">
             {/* Left: Status & Remarks */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-normal text-[#212529]">HIS/HER STATUS: </span>
-                <span className="border border-red-600 px-3 py-0.5 text-xs font-bold text-[#212529] tracking-wider uppercase">
+            <div className="space-y-4 print:space-y-1">
+              <div className="flex items-center gap-3 print:gap-2">
+                <span className="text-xs print:text-[9.5px] font-normal text-[#212529]">HIS/HER STATUS: </span>
+                <span className="border border-red-600 px-3 py-0.5 print:px-2 print:py-[1px] text-xs print:text-[9.5px] font-bold text-[#212529] tracking-wider uppercase">
                   {fitness}
                 </span>
               </div>
 
-              <div className="text-xs font-bold text-[#212529]">
+              <div className="text-xs print:text-[9.5px] font-bold text-[#212529]">
                 REMARKS: <span className="text-red-600">{rep?.finalRemarks || 'NORMAL'}</span>
               </div>
             </div>
 
             {/* Right: Chest X-Ray and QR Box side by side */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 print:gap-2">
               {/* Chest X-Ray Box */}
-              <div className="border border-[#212529] h-36 bg-black/5 flex flex-col items-center justify-center overflow-hidden p-1">
+              <div className="border border-[#212529] h-36 print:h-20 bg-black/5 flex flex-col items-center justify-center overflow-hidden p-1 print:p-0.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={xraySrc}
                   alt="Chest X-Ray"
                   className="w-full h-full object-contain"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/default_xray.png';
+                    const target = e.target as HTMLImageElement;
+                    if (!target.dataset.fallbackTried && rep?.xrayImageUrl) {
+                      target.dataset.fallbackTried = 'true';
+                      const clean = rep.xrayImageUrl.replace(/^\//, '').split('/').pop();
+                      target.src = `${API_BASE}/api/v1/uploads/file/${clean}`;
+                    } else {
+                      target.src = '/default_xray.png';
+                    }
                   }}
                 />
               </div>
 
               {/* QR Verification Box */}
-              <div className="border border-[#212529] h-36 p-1.5 flex flex-col items-center justify-between text-center bg-white">
-                <div className="w-20 h-20 bg-white border border-slate-200 p-0.5 flex items-center justify-center">
+              <div className="border border-[#212529] h-36 print:h-20 p-1.5 print:p-0.5 flex flex-col items-center justify-between text-center bg-white">
+                <div className="w-20 h-20 print:w-12 print:h-12 bg-white border border-slate-200 p-0.5 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`)}`}
@@ -1019,20 +1039,20 @@ export default function PublicVerificationPage() {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div className="space-y-0.5">
-                  <span className="text-[8px] font-bold text-[#212529] block uppercase">SCAN TO VERIFY REPORT</span>
-                  <span className="text-[7.5px] text-slate-500 font-mono block">Reg: {regNumber}</span>
-                  <span className="text-[7px] font-bold text-emerald-700 block">Official Verification Portal</span>
+                <div className="space-y-0.5 print:space-y-0">
+                  <span className="text-[8px] print:text-[6.5px] font-bold text-[#212529] block uppercase">SCAN TO VERIFY REPORT</span>
+                  <span className="text-[7.5px] print:text-[6px] text-slate-500 font-mono block">Reg: {regNumber}</span>
+                  <span className="text-[7px] print:text-[5.5px] font-bold text-emerald-700 block">Official Verification Portal</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 7. AUTO-GENERATED DISCLAIMER & FOOTER */}
-          <div className="text-center pt-2 border-t border-slate-300 text-[10px] text-[#212529]">
+          <div className="text-center pt-2 print:pt-0.5 border-t border-slate-300 text-[10px] print:text-[7.5px] text-[#212529]">
             This is an auto generated report, does not require any signature.
           </div>
-          <div className="flex items-center justify-between text-[8px] text-slate-400 pt-1 border-t border-slate-200 font-mono">
+          <div className="flex items-center justify-between text-[8px] print:text-[7px] text-slate-400 pt-1 print:pt-0.5 border-t border-slate-200 font-mono">
             <span className="truncate">Online Verification: {typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`}</span>
             <span className="font-bold text-slate-600 flex-shrink-0">Page 2/2</span>
           </div>

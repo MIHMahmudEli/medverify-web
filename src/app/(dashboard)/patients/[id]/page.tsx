@@ -158,7 +158,15 @@ export default function PatientDetailPage() {
                 alt={patient.fullName}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/default_photo.png';
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.fallbackTried && patient?.photoUrl) {
+                    target.dataset.fallbackTried = 'true';
+                    const clean = patient.photoUrl.replace(/^\//, '').split('/').pop();
+                    const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'https://medverify-api-y6am.onrender.com').replace(/\/+$/, '');
+                    target.src = `${apiBase}/api/v1/uploads/file/${clean}`;
+                  } else {
+                    target.src = '/default_photo.png';
+                  }
                 }}
               />
             </div>

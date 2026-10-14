@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { TableSkeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
+import { ModalPortal } from '@/components/ui/modal-portal';
 import {
   Table,
   TableHeader,
@@ -31,6 +32,9 @@ import {
   Lock,
   Mail,
   User,
+  Building2,
+  X,
+  Sparkles,
 } from 'lucide-react';
 
 export default function UsersPage() {
@@ -132,9 +136,9 @@ export default function UsersPage() {
             variant="default"
             size="sm"
             onClick={() => setShowCreateModal(true)}
-            className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+            className="gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm font-semibold transition-all hover:shadow-md"
           >
-            <UserPlus className="h-3.5 w-3.5" />
+            <UserPlus className="h-4 w-4" />
             <span>Create New User</span>
           </Button>
         }
@@ -156,7 +160,7 @@ export default function UsersPage() {
             <Button
               size="sm"
               onClick={() => setShowCreateModal(true)}
-              className="gap-1.5 text-xs rounded-lg"
+              className="gap-1.5 text-xs rounded-xl bg-slate-900 text-white hover:bg-slate-800"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Create User</span>
@@ -211,18 +215,18 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell>
                         {u.isActive ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
                             <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
                             Deactivated
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="text-xs text-slate-500">
+                      <TableCell className="text-xs text-slate-500 font-mono">
                         {formatDate(u.createdAt)}
                       </TableCell>
                       <TableCell className="text-right pr-6">
@@ -230,7 +234,7 @@ export default function UsersPage() {
                           variant={u.isActive ? 'outline' : 'secondary'}
                           size="sm"
                           onClick={() => handleToggleActive(u)}
-                          className="h-7 px-2.5 text-[11px] rounded-lg"
+                          className="h-7 px-2.5 text-[11px] rounded-lg transition-all"
                         >
                           {u.isActive ? 'Deactivate' : 'Activate'}
                         </Button>
@@ -244,122 +248,172 @@ export default function UsersPage() {
         </Card>
       )}
 
-      {/* CREATE USER MODAL */}
+      {/* CREATE USER MODAL - Centered in Viewport via ModalPortal with Backdrop Blur */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
-          <Card className="max-w-md w-full bg-white shadow-float rounded-2xl border border-slate-200 animate-scaleIn overflow-hidden">
-            <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
-              <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-teal-600" />
-                <span>Create User Account</span>
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Assign clinical roles and security permissions for diagnostic personnel.
-              </CardDescription>
-            </CardHeader>
+        <ModalPortal>
+          <div
+            className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+            onClick={() => setShowCreateModal(false)}
+          >
+            <div
+              className="relative max-w-lg w-full bg-white shadow-2xl rounded-3xl border border-slate-200/90 animate-in zoom-in-95 duration-200 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Top Accent Line */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-400" />
 
-            <form onSubmit={handleCreate}>
-              <CardContent className="space-y-3.5 pt-4">
-                {modalError && (
-                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-                    {modalError}
+              {/* Modal Header */}
+              <div className="flex items-start justify-between p-6 pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-teal-50 border border-teal-200/80 flex items-center justify-center text-teal-600 shadow-xs">
+                    <UserPlus className="h-5 w-5" />
                   </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Full Legal Name *
-                  </label>
-                  <Input
-                    required
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    placeholder="e.g. Dr. A. K. M. Shamsuddin"
-                    className="h-10 text-xs rounded-xl"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Email Address *
-                  </label>
-                  <Input
-                    required
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="name@medverify.com"
-                    className="h-10 text-xs rounded-xl"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Initial Password *
-                  </label>
-                  <Input
-                    required
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Min 8 characters, 1 uppercase, 1 special"
-                    className="h-10 text-xs rounded-xl"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                      Clinical Role *
-                    </label>
-                    <select
-                      value={formData.role}
-                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
-                    >
-                      <option value="DOCTOR">Doctor (Reviewer)</option>
-                      <option value="REPORT_OPERATOR">Report Operator</option>
-                      <option value="LAB_TECHNICIAN">Lab Technician</option>
-                      <option value="ADMIN">System Admin</option>
-                      <option value="SUPER_ADMIN">Super Admin</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                      Department
-                    </label>
-                    <Input
-                      value={formData.department}
-                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      placeholder="e.g. Diagnostic Center"
-                      className="h-10 text-xs rounded-xl"
-                    />
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                      <span>Register Clinical Account</span>
+                      <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                        RBAC
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Assign role-based access, diagnostic authority, and digital signatory rights.
+                    </p>
                   </div>
                 </div>
-              </CardContent>
-
-              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
                   onClick={() => setShowCreateModal(false)}
-                  className="h-9 text-xs rounded-xl"
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                 >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="h-9 text-xs rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-2xs"
-                >
-                  {actionLoading ? 'Creating User...' : 'Create Account'}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </div>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Form Content */}
+              <form onSubmit={handleCreate}>
+                <div className="p-6 space-y-4">
+                  {modalError && (
+                    <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5 animate-fadeInFast">
+                      <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                      <span>{modalError}</span>
+                    </div>
+                  )}
+
+                  {/* Full Legal Name */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Full Legal Name *
+                    </label>
+                    <div className="relative group">
+                      <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 group-focus-within:text-teal-600 transition-colors pointer-events-none" />
+                      <Input
+                        required
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        placeholder="e.g. Dr. A. K. M. Shamsuddin"
+                        className="pl-10 h-10 text-xs rounded-xl border-slate-200 focus-visible:ring-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Address */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Clinical Email Address *
+                    </label>
+                    <div className="relative group">
+                      <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 group-focus-within:text-teal-600 transition-colors pointer-events-none" />
+                      <Input
+                        required
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="doctor@medverify.com"
+                        className="pl-10 h-10 text-xs rounded-xl border-slate-200 focus-visible:ring-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Initial Password *
+                    </label>
+                    <div className="relative group">
+                      <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 group-focus-within:text-teal-600 transition-colors pointer-events-none" />
+                      <Input
+                        required
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="Min 8 characters, 1 uppercase, 1 special symbol"
+                        className="pl-10 h-10 text-xs rounded-xl border-slate-200 focus-visible:ring-slate-900"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Role & Department Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                        Clinical Role *
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={formData.role}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                          className="w-full h-10 pl-3 pr-8 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-semibold appearance-none cursor-pointer"
+                        >
+                          <option value="DOCTOR">Doctor (Signatory Physician)</option>
+                          <option value="REPORT_OPERATOR">Report Operator (Data Entry)</option>
+                          <option value="LAB_TECHNICIAN">Lab Technician (Diagnostics)</option>
+                          <option value="ADMIN">System Administrator</option>
+                          <option value="SUPER_ADMIN">Super Administrator</option>
+                        </select>
+                        <Shield className="absolute right-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                        Department
+                      </label>
+                      <div className="relative group">
+                        <Building2 className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 group-focus-within:text-teal-600 transition-colors pointer-events-none" />
+                        <Input
+                          value={formData.department}
+                          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                          placeholder="e.g. Diagnostic Center"
+                          className="pl-10 h-10 text-xs rounded-xl border-slate-200 focus-visible:ring-slate-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-between py-4 px-6 bg-slate-50/80 border-t border-slate-100">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCreateModal(false)}
+                    className="h-10 px-4 text-xs font-semibold rounded-xl border-slate-200 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="h-10 px-5 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all"
+                  >
+                    {actionLoading ? 'Creating User Account...' : 'Register Account'}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </div>
   );

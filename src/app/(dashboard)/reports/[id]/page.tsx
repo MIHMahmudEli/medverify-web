@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { ReportDetailSkeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/ui/page-header';
 import { ErrorState } from '@/components/ui/error-state';
+import { ModalPortal } from '@/components/ui/modal-portal';
 import {
   Table,
   TableHeader,
@@ -239,26 +240,48 @@ export default function ReportDetailPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto animate-fadeIn">
-      {/* Top Header */}
-      <PageHeader
-        title={`Report ${report.registrationNumber}`}
-        description={`Candidate: ${p?.fullName || '—'} (Passport: ${p?.passportNumber || '—'}) • Examination Date: ${formatDate(report.registeredAt)}`}
-        backHref="/reports"
-        backLabel="Back to reports"
-        badge={
-          <div className="flex items-center gap-1.5">
-            {getStatusBadge()}
-            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              Rev #{report.currentRevisionNumber}
-            </span>
+      {/* Top Header Card */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Left: Back button + Details */}
+          <div className="flex items-start sm:items-center gap-3.5">
+            <Link href="/reports" aria-label="Back to reports">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-9 p-0 rounded-xl text-slate-600 hover:text-slate-900 border-slate-200 hover:border-slate-300 shadow-2xs transition-all hover:bg-slate-50 flex-shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-mono">
+                  Report {report.registrationNumber}
+                </h1>
+                {getStatusBadge()}
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                  Rev #{report.currentRevisionNumber}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
+                <span>Candidate: <strong className="text-slate-900 uppercase font-semibold">{p?.fullName || '—'}</strong></span>
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span>Passport: <strong className="text-slate-800 font-mono font-semibold">{p?.passportNumber || '—'}</strong></span>
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span>Exam Date: <strong className="text-slate-800 font-semibold">{formatDate(report.registeredAt)}</strong></span>
+              </div>
+            </div>
           </div>
-        }
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
+
+          {/* Right: Actions Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
             {report.status === 'DRAFT' && (
               <>
                 <Link href={`/reports/${report.id}/edit`}>
-                  <Button variant="outline" size="sm" className="gap-1.5 rounded-lg border-slate-200">
+                  <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-xl border-slate-200 text-xs font-semibold">
                     <Edit className="h-3.5 w-3.5" />
                     <span>Edit Draft</span>
                   </Button>
@@ -268,7 +291,7 @@ export default function ReportDetailPage() {
                   size="sm"
                   disabled={actionLoading}
                   onClick={handleSubmitForReview}
-                  className="gap-1.5 rounded-lg"
+                  className="h-9 gap-1.5 rounded-xl text-xs font-semibold"
                 >
                   <Send className="h-3.5 w-3.5" />
                   <span>Submit for Review</span>
@@ -282,7 +305,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowFinalizeModal(true)}
-                className="gap-1.5 rounded-lg font-semibold"
+                className="h-9 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>Finalize & Sign Off</span>
@@ -295,7 +318,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowAmendModal(true)}
-                className="gap-1.5 rounded-lg border-amber-200 text-amber-800 hover:bg-amber-50"
+                className="h-9 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs"
               >
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
                 <span>Amend Report</span>
@@ -308,7 +331,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={() => setShowRevokeModal(true)}
-                className="gap-1.5 rounded-lg font-semibold"
+                className="h-9 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs"
               >
                 <XCircle className="h-3.5 w-3.5" />
                 <span>Revoke</span>
@@ -321,7 +344,7 @@ export default function ReportDetailPage() {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleIssueCertificate}
-                className="gap-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold"
+                className="h-9 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>Issue Certificate</span>
@@ -329,8 +352,12 @@ export default function ReportDetailPage() {
             )}
 
             <Link href={`/reports/${report.id}/preview`}>
-              <Button variant="outline" size="sm" className="gap-1.5 rounded-lg border-slate-200">
-                <Printer className="h-3.5 w-3.5" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs"
+              >
+                <Printer className="h-3.5 w-3.5 text-teal-600" />
                 <span>Preview & Print</span>
               </Button>
             </Link>
@@ -339,14 +366,14 @@ export default function ReportDetailPage() {
               variant="default"
               size="sm"
               onClick={handleDownloadPdf}
-              className="gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold"
+              className="h-9 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs"
             >
-              <FileDown className="h-3.5 w-3.5" />
+              <FileDown className="h-3.5 w-3.5 text-teal-400" />
               <span>Download 2-Page PDF</span>
             </Button>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* Official Certificate Banner */}
       {certificate && (
@@ -408,7 +435,15 @@ export default function ReportDetailPage() {
               alt={p?.fullName || 'Candidate Photo'}
               className="w-full h-full object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/default_photo.png';
+                const target = e.target as HTMLImageElement;
+                if (!target.dataset.fallbackTried && p?.photoUrl) {
+                  target.dataset.fallbackTried = 'true';
+                  const clean = p.photoUrl.replace(/^\//, '').split('/').pop();
+                  const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'https://medverify-api-y6am.onrender.com').replace(/\/+$/, '');
+                  target.src = `${apiBase}/api/v1/uploads/file/${clean}`;
+                } else {
+                  target.src = '/default_photo.png';
+                }
               }}
             />
           </div>
@@ -817,181 +852,187 @@ export default function ReportDetailPage() {
 
       {/* FINALIZE & SIGN OFF MODAL */}
       {showFinalizeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
-          <Card className="max-w-md w-full bg-white shadow-float rounded-2xl border border-slate-200 animate-scaleIn overflow-hidden">
-            <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
-              <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-teal-600" />
-                <span>Doctor Finalization & Sign-Off</span>
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                You are formally evaluating candidate fitness and issuing cryptographic authentication.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Final Medical Fitness Decision *
-                </label>
-                <select
-                  value={finalizeStatus}
-                  onChange={(e: any) => setFinalizeStatus(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-bold"
-                >
-                  <option value="FIT">FIT (Medically Approved)</option>
-                  <option value="UNFIT">UNFIT (Failed Criteria)</option>
-                  <option value="PENDING_INVESTIGATION">PENDING INVESTIGATION</option>
-                </select>
-              </div>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
+                <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-teal-600" />
+                  <span>Doctor Finalization & Sign-Off</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-slate-500">
+                  You are formally evaluating candidate fitness and issuing cryptographic authentication.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                    Final Medical Fitness Decision *
+                  </label>
+                  <select
+                    value={finalizeStatus}
+                    onChange={(e: any) => setFinalizeStatus(e.target.value)}
+                    className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-bold"
+                  >
+                    <option value="FIT">FIT (Medically Approved)</option>
+                    <option value="UNFIT">UNFIT (Failed Criteria)</option>
+                    <option value="PENDING_INVESTIGATION">PENDING INVESTIGATION</option>
+                  </select>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Physician Final Remarks
-                </label>
-                <Input
-                  value={finalizeRemarks}
-                  onChange={(e) => setFinalizeRemarks(e.target.value)}
-                  placeholder="e.g. NORMAL"
-                  className="h-10 text-xs rounded-xl"
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFinalizeModal(false)}
-                className="h-9 text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="clinical"
-                size="sm"
-                disabled={actionLoading}
-                onClick={handleFinalize}
-                className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
-              >
-                {actionLoading ? 'Approving...' : 'Confirm Approval & Generate QR'}
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                    Physician Final Remarks
+                  </label>
+                  <Input
+                    value={finalizeRemarks}
+                    onChange={(e) => setFinalizeRemarks(e.target.value)}
+                    placeholder="e.g. NORMAL"
+                    className="h-10 text-xs rounded-xl"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFinalizeModal(false)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="clinical"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={handleFinalize}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
+                >
+                  {actionLoading ? 'Approving...' : 'Confirm Approval & Generate QR'}
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
       )}
 
       {/* AMEND REPORT MODAL */}
       {showAmendModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
-          <Card className="max-w-md w-full bg-white shadow-float rounded-2xl border border-slate-200 animate-scaleIn overflow-hidden">
-            <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
-              <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                <span>Amend Medical Report</span>
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Amending will increment revision to #{report.currentRevisionNumber + 1}, supersede old QR tokens, and record an immutable revision history.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Reason for Amendment *
-                </label>
-                <Input
-                  required
-                  value={amendReason}
-                  onChange={(e) => setAmendReason(e.target.value)}
-                  placeholder="e.g. Corrected Blood Group, repeated lab panel"
-                  className="h-10 text-xs rounded-xl"
-                />
-              </div>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3">
+                <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  <span>Amend Medical Report</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-slate-500">
+                  Amending will increment revision to #{report.currentRevisionNumber + 1}, supersede old QR tokens, and record an immutable revision history.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                    Reason for Amendment *
+                  </label>
+                  <Input
+                    required
+                    value={amendReason}
+                    onChange={(e) => setAmendReason(e.target.value)}
+                    placeholder="e.g. Corrected Blood Group, repeated lab panel"
+                    className="h-10 text-xs rounded-xl"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Updated Medical Fitness Decision *
-                </label>
-                <select
-                  value={amendFitness}
-                  onChange={(e: any) => setAmendFitness(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-bold"
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                    Updated Medical Fitness Decision *
+                  </label>
+                  <select
+                    value={amendFitness}
+                    onChange={(e: any) => setAmendFitness(e.target.value)}
+                    className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 font-bold"
+                  >
+                    <option value="FIT">FIT</option>
+                    <option value="UNFIT">UNFIT</option>
+                    <option value="PENDING_INVESTIGATION">PENDING INVESTIGATION</option>
+                  </select>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAmendModal(false)}
+                  className="h-9 text-xs rounded-xl"
                 >
-                  <option value="FIT">FIT</option>
-                  <option value="UNFIT">UNFIT</option>
-                  <option value="PENDING_INVESTIGATION">PENDING INVESTIGATION</option>
-                </select>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAmendModal(false)}
-                className="h-9 text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                disabled={actionLoading}
-                onClick={handleAmend}
-                className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
-              >
-                {actionLoading ? 'Amending...' : 'Submit Amendment'}
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={handleAmend}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
+                >
+                  {actionLoading ? 'Amending...' : 'Submit Amendment'}
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
       )}
 
       {/* REVOKE REPORT MODAL */}
       {showRevokeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeInFast">
-          <Card className="max-w-md w-full bg-white shadow-float rounded-2xl border border-rose-200 animate-scaleIn overflow-hidden">
-            <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
-              <CardTitle className="text-base font-bold text-rose-800 flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5 text-rose-600" />
-                <span>Revoke Medical Report</span>
-              </CardTitle>
-              <CardDescription className="text-xs text-rose-600/90">
-                Revoking will permanently invalidate this medical file and mark public verification lookups as REVOKED.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Official Revocation Reason *
-                </label>
-                <Input
-                  required
-                  value={revokeReason}
-                  onChange={(e) => setRevokeReason(e.target.value)}
-                  placeholder="e.g. Identity fraud, clinical discrepancy"
-                  className="h-10 text-xs rounded-xl"
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowRevokeModal(false)}
-                className="h-9 text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={actionLoading}
-                onClick={handleRevoke}
-                className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
-              >
-                {actionLoading ? 'Revoking...' : 'Confirm Revocation'}
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-rose-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-rose-50/70 border-b border-rose-100 pb-3">
+                <CardTitle className="text-base font-bold text-rose-800 flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-rose-600" />
+                  <span>Revoke Medical Report</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-rose-600/90">
+                  Revoking will permanently invalidate this medical file and mark public verification lookups as REVOKED.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                    Official Revocation Reason *
+                  </label>
+                  <Input
+                    required
+                    value={revokeReason}
+                    onChange={(e) => setRevokeReason(e.target.value)}
+                    placeholder="e.g. Identity fraud, clinical discrepancy"
+                    className="h-10 text-xs rounded-xl"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRevokeModal(false)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={handleRevoke}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
+                >
+                  {actionLoading ? 'Revoking...' : 'Confirm Revocation'}
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
       )}
     </div>
   );

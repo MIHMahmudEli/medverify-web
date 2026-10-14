@@ -5,6 +5,14 @@ import { AuthProvider } from '@/lib/auth-context';
 export const metadata: Metadata = {
   title: 'MedVerify — Clinical Medical Report & Verification Platform',
   description: 'Enterprise Medical Examination, Laboratory Reporting and Online QR Verification Platform',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

@@ -110,13 +110,6 @@ export function Header({ onOpenMobileMenu }: HeaderProps) {
           </Link>
         </div>
 
-        {/* Live Status indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] text-slate-600 font-mono shadow-2xs">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="hidden sm:inline">Active Session</span>
-          <span className="sm:hidden text-[10px]">Online</span>
-        </div>
-
         {/* Department Badge */}
         <div className="hidden lg:block text-xs text-slate-500 pl-1 border-l border-slate-200">
           <span className="text-slate-700 font-medium">
