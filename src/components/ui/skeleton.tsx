@@ -229,50 +229,153 @@ export function PatientProfileSkeleton() {
 }
 
 /**
- * Public Certificate Skeleton
+ * Public Verification Page & Certificate Skeleton (Exact UI match to /verify/[token])
  */
-export function CertificateSkeleton() {
+export function VerifyPageSkeleton() {
   return (
-    <div className="w-full max-w-lg space-y-4 animate-fadeInFast">
-      <div className="flex flex-col items-center text-center space-y-1">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <Skeleton className="h-5 w-64" />
-        <Skeleton className="h-3 w-48" />
-      </div>
-
-      <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 bg-slate-900 flex items-center gap-3">
-          <Skeleton className="h-7 w-7 rounded-full bg-slate-700" />
-          <div className="space-y-1">
-            <Skeleton className="h-4 w-44 bg-slate-700" />
-            <Skeleton className="h-2.5 w-32 bg-slate-700" />
+    <div className="min-h-screen bg-slate-200/80 py-8 px-2 sm:px-4 flex flex-col items-center font-sans animate-fadeInFast w-full">
+      {/* 1. TOP STICKY ACTION HEADER SKELETON */}
+      <div className="w-full max-w-4xl space-y-3 mb-6">
+        <div className="p-4 bg-gradient-to-r from-slate-800 via-slate-850 to-slate-900 rounded-xl shadow-md flex items-center justify-between gap-3 border border-slate-700">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <Skeleton className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-slate-700/80 flex-shrink-0" />
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Skeleton className="h-4 w-40 sm:w-64 bg-slate-700/80" />
+                <Skeleton className="h-4 w-20 rounded-full bg-slate-700/80" />
+              </div>
+              <Skeleton className="h-3 w-48 sm:w-80 bg-slate-700/60" />
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <Skeleton className="h-8 w-8 sm:w-40 rounded-md bg-slate-700/80" />
+            <Skeleton className="h-8 w-8 sm:w-36 rounded-md bg-slate-700/80" />
           </div>
         </div>
+      </div>
 
-        <CardContent className="p-5 space-y-4">
-          <div className="p-3 rounded border border-slate-200 space-y-2">
-            <div className="flex justify-between">
-              <Skeleton className="h-3 w-28" />
-              <Skeleton className="h-4 w-28 font-mono" />
-            </div>
-            <div className="flex justify-between">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-3 w-20" />
+      {/* 2. PAGE 1: OFFICIAL MEDICAL FITNESS CERTIFICATE SKELETON */}
+      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-8 relative">
+        <div className="border-[2px] border-[#1e3a5f]/30 p-4 sm:p-6 relative rounded-sm space-y-4">
+          <div className="absolute inset-1.5 border border-[#c5a059]/30 pointer-events-none rounded-2xs" />
+          <div className="absolute top-2.5 left-2.5 w-4 h-4 border-t-2 border-l-2 border-[#c5a059]/40 pointer-events-none" />
+          <div className="absolute top-2.5 right-2.5 w-4 h-4 border-t-2 border-r-2 border-[#c5a059]/40 pointer-events-none" />
+          <div className="absolute bottom-2.5 left-2.5 w-4 h-4 border-b-2 border-l-2 border-[#c5a059]/40 pointer-events-none" />
+          <div className="absolute bottom-2.5 right-2.5 w-4 h-4 border-b-2 border-r-2 border-[#c5a059]/40 pointer-events-none" />
+
+          {/* INSTITUTIONAL HEADER */}
+          <div className="text-center space-y-1.5 pb-2">
+            <Skeleton className="h-6 w-56 sm:w-72 mx-auto bg-slate-200" />
+            <Skeleton className="h-3 w-72 sm:w-96 mx-auto bg-slate-200" />
+            <Skeleton className="h-2.5 w-60 sm:w-80 mx-auto bg-slate-200" />
+            <div className="w-56 h-[1px] bg-[#c5a059]/30 mx-auto mt-2" />
+          </div>
+
+          {/* CERTIFICATE TITLE BOX */}
+          <div className="my-2.5 text-center">
+            <div className="inline-block border border-[#1e3a5f]/20 bg-[#f8fafc] px-6 py-2.5 w-full max-w-xl text-center rounded-2xs space-y-1.5">
+              <Skeleton className="h-4 w-48 sm:w-64 mx-auto bg-slate-300" />
+              <Skeleton className="h-2.5 w-64 sm:w-80 mx-auto bg-slate-200" />
             </div>
           </div>
 
-          <div className="space-y-2 pt-2">
+          {/* CERTIFICATE METADATA STRIP (4 EQUAL COLUMNS) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2.5 p-2 bg-[#f8fafc] border border-slate-300 rounded-2xs">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex justify-between py-1 border-b border-slate-100">
-                <Skeleton className="h-3 w-32" />
-                <Skeleton className="h-3 w-24" />
+              <div key={i} className="space-y-1">
+                <Skeleton className="h-2.5 w-20 bg-slate-200" />
+                <Skeleton className="h-3.5 w-28 bg-slate-300" />
               </div>
             ))}
           </div>
 
-          <Skeleton className="h-9 w-full rounded" />
-        </CardContent>
-      </Card>
+          {/* CANDIDATE IDENTITY SECTION */}
+          <div className="my-2.5 space-y-1">
+            <Skeleton className="h-3 w-48 bg-slate-300" />
+            <div className="border border-slate-300 rounded-sm grid grid-cols-1 sm:grid-cols-4 bg-white overflow-hidden">
+              <div className="sm:col-span-3 p-3 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 border-b sm:border-b-0 sm:border-r border-slate-300">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-1">
+                    <Skeleton className="h-2.5 w-16 bg-slate-200" />
+                    <Skeleton className="h-3.5 w-28 bg-slate-300" />
+                  </div>
+                ))}
+              </div>
+              <div className="p-2.5 flex flex-col items-center justify-center bg-slate-50">
+                <Skeleton className="w-24 sm:w-28 h-28 sm:h-32 rounded border border-slate-300 bg-slate-200" />
+                <Skeleton className="h-2 w-16 mt-1.5 bg-slate-200" />
+              </div>
+            </div>
+          </div>
+
+          {/* CLINICAL FITNESS DECLARATION */}
+          <div className="my-2.5 space-y-1.5">
+            <Skeleton className="h-3 w-56 bg-slate-300" />
+            <div className="border border-slate-300 rounded-sm p-3 bg-slate-50/60 space-y-2.5">
+              <div className="space-y-1">
+                <Skeleton className="h-2.5 w-full bg-slate-200" />
+                <Skeleton className="h-2.5 w-4/5 bg-slate-200" />
+              </div>
+              <Skeleton className="h-9 w-full rounded border-2 border-slate-300 bg-slate-100" />
+              <Skeleton className="h-3 w-40 bg-slate-200" />
+            </div>
+          </div>
+
+          {/* SUMMARY OF CLINICAL ASSESSMENTS */}
+          <div className="my-2.5 space-y-1">
+            <Skeleton className="h-3 w-64 bg-slate-300" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-2 rounded bg-slate-50 border border-slate-300 flex flex-col justify-between h-24 space-y-1">
+                  <Skeleton className="h-2.5 w-20 bg-slate-300" />
+                  <Skeleton className="h-2 w-full bg-slate-200" />
+                  <Skeleton className="h-2.5 w-16 mx-auto bg-slate-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* DIGITAL AUTHENTICATION & SIGNATORY/SEAL SECTION */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-3 pt-1 border-t border-slate-300">
+            <div className="border border-slate-300 rounded p-2.5 bg-slate-50/50 flex flex-col items-center justify-between text-center space-y-2">
+              <Skeleton className="h-2.5 w-48 bg-slate-300" />
+              <Skeleton className="w-24 h-24 bg-slate-200 rounded" />
+              <Skeleton className="h-2.5 w-36 bg-slate-200" />
+            </div>
+            <div className="border border-slate-300 rounded p-2.5 bg-slate-50/50 flex flex-col justify-between space-y-2">
+              <div className="text-center space-y-1.5">
+                <Skeleton className="h-2.5 w-48 mx-auto bg-slate-300" />
+                <Skeleton className="h-7 w-24 mx-auto bg-slate-200" />
+              </div>
+              <div className="border-t border-slate-300 pt-1 flex items-center justify-between gap-1">
+                <div className="space-y-1">
+                  <Skeleton className="h-3 w-32 bg-slate-300" />
+                  <Skeleton className="h-2.5 w-28 bg-slate-200" />
+                  <Skeleton className="h-2.5 w-24 bg-slate-200" />
+                </div>
+                <Skeleton className="w-16 h-16 rounded-full bg-slate-200 flex-shrink-0" />
+              </div>
+            </div>
+          </div>
+
+          {/* FOOTER */}
+          <div className="border-t border-slate-300 pt-2 flex items-center justify-between">
+            <Skeleton className="h-2.5 w-48 bg-slate-200" />
+            <Skeleton className="h-2.5 w-20 bg-slate-200" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. BOTTOM FLOATING ACTION BAR SKELETON */}
+      <div className="w-full max-w-4xl mt-6 p-3 sm:p-4 bg-white rounded-xl shadow-md border border-slate-300 flex items-center justify-between gap-3">
+        <Skeleton className="h-4 w-48 sm:w-72 bg-slate-200" />
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          <Skeleton className="h-8 w-8 sm:w-44 rounded-md bg-slate-200" />
+          <Skeleton className="h-8 w-8 sm:w-40 rounded-md bg-slate-200" />
+        </div>
+      </div>
     </div>
   );
 }
+
+export const CertificateSkeleton = VerifyPageSkeleton;

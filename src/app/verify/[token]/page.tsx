@@ -131,13 +131,7 @@ export default function PublicVerificationPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-100/90 py-12 px-4 flex flex-col items-center justify-center">
-        <div className="w-full max-w-3xl space-y-4">
-          <CertificateSkeleton />
-        </div>
-      </div>
-    );
+    return <CertificateSkeleton />;
   }
 
   const cert = data?.certificate;
@@ -171,84 +165,92 @@ export default function PublicVerificationPage() {
       {/* 1. TOP STICKY ACTION HEADER (HIDDEN IN PRINT) */}
       <div className="w-full max-w-4xl space-y-3 mb-6 print:hidden">
         {data?.status === 'VALID' ? (
-          <div className="p-4 bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 text-white rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-emerald-500/30">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center flex-shrink-0 text-emerald-300">
-                <ShieldCheck className="h-6 w-6" />
+          <div className="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 text-white rounded-xl shadow-md flex items-center justify-between gap-3 border border-emerald-500/30">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center flex-shrink-0 text-emerald-300">
+                <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold tracking-wider uppercase">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider uppercase">
                     Authentic Medical Certificate Verified
                   </h2>
-                  <Badge variant="fit" className="text-[10px]">
+                  <Badge variant="fit" className="text-[9px] sm:text-[10px] px-1.5 py-0">
                     GENUINE & ACTIVE
                   </Badge>
                 </div>
-                <p className="text-[11px] text-emerald-100/80 mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-emerald-100/80 mt-0.5 truncate sm:whitespace-normal">
                   Issued by {orgName} • Authenticated via MedVerify Digital Health Ledger
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadCombinedPdf}
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 gap-1.5"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 px-2.5 sm:px-3 gap-1.5"
+                title="Download Combined 2-Page PDF"
+                aria-label="Download Combined 2-Page PDF"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Download Combined 2-Page PDF</span>
+                <span className="hidden sm:inline">Download Combined 2-Page PDF</span>
               </Button>
               <Button
                 size="sm"
                 onClick={handlePrint}
-                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs h-8 gap-1.5 shadow-sm"
+                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs h-8 px-2.5 sm:px-3 gap-1.5 shadow-sm"
+                title="Print Certificate & Report"
+                aria-label="Print Certificate & Report"
               >
                 <Printer className="h-3.5 w-3.5" />
-                <span>Print Certificate & Report</span>
+                <span className="hidden sm:inline">Print Certificate & Report</span>
               </Button>
             </div>
           </div>
         ) : data?.status === 'DRAFT' ? (
-          <div className="p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-amber-400/40">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-amber-400/20 border border-amber-300/40 flex items-center justify-center flex-shrink-0 text-amber-200">
-                <AlertTriangle className="h-6 w-6" />
+          <div className="p-3.5 sm:p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white rounded-xl shadow-md flex items-center justify-between gap-3 border border-amber-400/40">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-amber-400/20 border border-amber-300/40 flex items-center justify-center flex-shrink-0 text-amber-200">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold tracking-wider uppercase">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider uppercase">
                     Draft Examination Record — Pre-Approval Preview
                   </h2>
-                  <Badge variant="outline" className="border-amber-300 text-amber-100 text-[10px]">
+                  <Badge variant="outline" className="border-amber-300 text-amber-100 text-[9px] sm:text-[10px] px-1.5 py-0">
                     DRAFT
                   </Badge>
                 </div>
-                <p className="text-[11px] text-amber-100/90 mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-amber-100/90 mt-0.5 truncate sm:whitespace-normal">
                   This examination has not yet been finalized or approved by the authorized medical examiner.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadCombinedPdf}
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 gap-1.5"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 px-2.5 sm:px-3 gap-1.5"
+                title="Download Draft PDF"
+                aria-label="Download Draft PDF"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span>Download Draft PDF</span>
+                <span className="hidden sm:inline">Download Draft PDF</span>
               </Button>
               <Button
                 size="sm"
                 onClick={handlePrint}
-                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs h-8 gap-1.5 shadow-sm"
+                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs h-8 px-2.5 sm:px-3 gap-1.5 shadow-sm"
+                title="Print Draft Record"
+                aria-label="Print Draft Record"
               >
                 <Printer className="h-3.5 w-3.5" />
-                <span>Print Draft Record</span>
+                <span className="hidden sm:inline">Print Draft Record</span>
               </Button>
             </div>
           </div>
@@ -1060,30 +1062,34 @@ export default function PublicVerificationPage() {
       </div>
 
       {/* 5. BOTTOM FLOATING ACTION BAR (HIDDEN IN PRINT) */}
-      <div className="w-full max-w-4xl mt-6 p-4 bg-white rounded-xl shadow-md border border-slate-300 flex flex-col sm:flex-row items-center justify-between gap-3 print:hidden">
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <FileCheck2 className="h-4 w-4 text-teal-600" />
-          <span>Combined Document: <strong>Page 1 Certificate + Page 2 Clinical Report</strong></span>
+      <div className="w-full max-w-4xl mt-6 p-3.5 sm:p-4 bg-white rounded-xl shadow-md border border-slate-300 flex items-center justify-between gap-3 print:hidden">
+        <div className="flex items-center gap-2 text-xs text-slate-600 min-w-0">
+          <FileCheck2 className="h-4 w-4 text-teal-600 flex-shrink-0" />
+          <span className="truncate">Combined Document: <strong className="hidden sm:inline">Page 1 Certificate + Page 2 Clinical Report</strong><strong className="sm:hidden">2-Page Set</strong></span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handleDownloadCombinedPdf}
-            className="gap-1.5 text-xs h-8 text-slate-800"
+            className="gap-1.5 text-xs h-8 px-2.5 sm:px-3 text-slate-800"
+            title="Download Combined 2-Page PDF"
+            aria-label="Download Combined 2-Page PDF"
           >
             <Download className="h-3.5 w-3.5" />
-            <span>Download Combined 2-Page PDF</span>
+            <span className="hidden sm:inline">Download Combined 2-Page PDF</span>
           </Button>
 
           <Button
             size="sm"
             onClick={handlePrint}
-            className="gap-1.5 text-xs h-8 bg-slate-900 hover:bg-slate-800 text-white"
+            className="gap-1.5 text-xs h-8 px-2.5 sm:px-3 bg-slate-900 hover:bg-slate-800 text-white"
+            title="Print Combined 2-Page Document"
+            aria-label="Print Combined 2-Page Document"
           >
             <Printer className="h-3.5 w-3.5" />
-            <span>Print Combined 2-Page Document</span>
+            <span className="hidden sm:inline">Print Combined 2-Page Document</span>
           </Button>
         </div>
       </div>
