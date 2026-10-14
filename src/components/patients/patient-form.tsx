@@ -20,6 +20,7 @@ import {
   Shield,
 } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface PatientFormProps {
   initialData?: any;
@@ -36,6 +37,8 @@ export function PatientForm({
 }: PatientFormProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const errorAlertRef = useRef<HTMLDivElement>(null);
+  const photoCardRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     fullName: initialData?.fullName || '',
@@ -53,6 +56,8 @@ export function PatientForm({
     email: initialData?.email || '',
   });
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   const [photoUrl, setPhotoUrl] = useState<string>(initialData?.photoUrl || '');
   const [photoPreview, setPhotoPreview] = useState<string>(initialData?.photoUrl || '');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -64,6 +69,41 @@ export function PatientForm({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear specific field error as user corrects it
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
+
+  const scrollToField = (fieldName: string) => {
+    setTimeout(() => {
+      const el = document.querySelector(`[name="${fieldName}"]`) as HTMLElement;
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try {
+          el.focus({ preventScroll: true });
+        } catch {
+          el.focus();
+        }
+      } else {
+        scrollToTopError();
+      }
+    }, 60);
+  };
+
+  const scrollToTopError = () => {
+    setTimeout(() => {
+      if (errorAlertRef.current) {
+        errorAlertRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 60);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +121,11 @@ export function PatientForm({
       setPhotoUrl(res.url);
       setPhotoPreview(res.url);
     } catch (err: any) {
-      setUploadError(err.message || 'Failed to upload photo');
+      const errMsg = err.message || 'Failed to upload photo';
+      setUploadError(errMsg);
+      setTimeout(() => {
+        photoCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 60);
     } finally {
       setUploadingPhoto(false);
     }
@@ -104,9 +148,82 @@ export function PatientForm({
     return `${apiBase}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
+  const validateForm = (): Record<string, string> => {
+    const errs: Record<string, string> = {};
+
+    if (!formData.fullName.trim()) {
+      errs.fullName = 'Full legal candidate name is required';
+    } else if (formData.fullName.trim().length < 2) {
+      errs.fullName = 'Candidate name must be at least 2 characters';
+    }
+
+    if (!formData.passportNumber.trim()) {
+      errs.passportNumber = 'Passport number is required';
+    } else if (formData.passportNumber.trim().length < 4) {
+      errs.passportNumber = 'Valid passport number is required (min 4 characters)';
+    }
+
+    if (!formData.dateOfBirth) {
+      errs.dateOfBirth = 'Date of birth is required';
+    } else {
+      const dob = new Date(formData.dateOfBirth);
+      const today = new Date();
+      if (isNaN(dob.getTime()) || dob > today) {
+        errs.dateOfBirth = 'Date of birth cannot be in the future';
+      }
+    }
+
+    if (!formData.gender) {
+      errs.gender = 'Gender selection is required';
+    }
+
+    if (!formData.nationality.trim()) {
+      errs.nationality = 'Candidate nationality is required';
+    }
+
+    if (!formData.country.trim()) {
+      errs.country = 'Destination country is required';
+    }
+
+    if (formData.email?.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        errs.email = 'Please provide a valid email address';
+      }
+    }
+
+    if (formData.heightCm) {
+      const h = parseFloat(formData.heightCm);
+      if (isNaN(h) || h < 30 || h > 250) {
+        errs.heightCm = 'Height must be between 30 and 250 cm';
+      }
+    }
+
+    if (formData.weightKg) {
+      const w = parseFloat(formData.weightKg);
+      if (isNaN(w) || w < 20 || w > 300) {
+        errs.weightKg = 'Weight must be between 20 and 300 kg';
+      }
+    }
+
+    return errs;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // 1. Client-Side Field Validation
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setError('Please complete or correct the highlighted fields before proceeding.');
+      const firstInvalidKey = Object.keys(validationErrors)[0];
+      scrollToField(firstInvalidKey);
+      return;
+    }
+
+    setFieldErrors({});
     setLoading(true);
 
     try {
@@ -129,8 +246,32 @@ export function PatientForm({
 
       await onSubmit(payload);
     } catch (err: any) {
-      setError(err.message || 'Failed to save patient record');
+      const msg = err.message || 'Failed to save patient record';
+      setError(msg);
       setLoading(false);
+
+      // Check if backend error corresponds to a specific field
+      const lower = msg.toLowerCase();
+      let matchedField = '';
+      if (lower.includes('passport')) {
+        matchedField = 'passportNumber';
+        setFieldErrors((prev) => ({ ...prev, passportNumber: msg }));
+      } else if (lower.includes('fullname') || lower.includes('full name')) {
+        matchedField = 'fullName';
+        setFieldErrors((prev) => ({ ...prev, fullName: msg }));
+      } else if (lower.includes('date of birth') || lower.includes('dateofbirth')) {
+        matchedField = 'dateOfBirth';
+        setFieldErrors((prev) => ({ ...prev, dateOfBirth: msg }));
+      } else if (lower.includes('email')) {
+        matchedField = 'email';
+        setFieldErrors((prev) => ({ ...prev, email: msg }));
+      }
+
+      if (matchedField) {
+        scrollToField(matchedField);
+      } else {
+        scrollToTopError();
+      }
     }
   };
 
@@ -146,17 +287,22 @@ export function PatientForm({
 
       {error && (
         <div
+          ref={errorAlertRef}
           role="alert"
-          className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-3 animate-fadeInFast shadow-2xs"
+          tabIndex={-1}
+          className="p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-800 text-xs flex items-start gap-3 animate-fadeInFast shadow-xs outline-none"
         >
           <AlertCircle className="h-5 w-5 flex-shrink-0 text-rose-600 mt-0.5" />
-          <span className="leading-relaxed">{error}</span>
+          <div className="flex-1 space-y-1">
+            <span className="font-bold block text-rose-900">Please Review the Form</span>
+            <span className="leading-relaxed block">{error}</span>
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Candidate Photograph Section */}
-        <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+        <Card ref={photoCardRef} className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
           <CardHeader className="py-3.5 px-4 sm:px-6 bg-slate-50/60 border-b border-slate-100">
             <CardTitle className="text-sm font-bold text-slate-900">
               Candidate Photograph
@@ -247,8 +393,9 @@ export function PatientForm({
                 </div>
 
                 {uploadError && (
-                  <p className="text-[11px] text-rose-600 font-medium">
-                    {uploadError}
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center justify-center sm:justify-start gap-1">
+                    <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>{uploadError}</span>
                   </p>
                 )}
               </div>
@@ -269,6 +416,7 @@ export function PatientForm({
 
           <CardContent className="p-4 sm:p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Full Legal Name */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Full Legal Name <span className="text-rose-500">*</span>
@@ -279,10 +427,20 @@ export function PatientForm({
                   placeholder="e.g. MOHAMMAD FARUK"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="h-10 text-xs uppercase bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs uppercase bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.fullName && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.fullName && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.fullName}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Passport Number */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Passport Number <span className="text-rose-500">*</span>
@@ -293,10 +451,20 @@ export function PatientForm({
                   placeholder="e.g. A01234567"
                   value={formData.passportNumber}
                   onChange={handleChange}
-                  className="h-10 text-xs font-mono uppercase bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs font-mono uppercase bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.passportNumber && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.passportNumber && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.passportNumber}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Date of Birth */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Date of Birth <span className="text-rose-500">*</span>
@@ -307,10 +475,20 @@ export function PatientForm({
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleChange}
-                  className="h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.dateOfBirth && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.dateOfBirth && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.dateOfBirth}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Gender */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Gender <span className="text-rose-500">*</span>
@@ -319,14 +497,24 @@ export function PatientForm({
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className={cn(
+                    'w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all',
+                    fieldErrors.gender && 'border-rose-500 focus:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
+                {fieldErrors.gender && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.gender}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Nationality */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Nationality <span className="text-rose-500">*</span>
@@ -337,10 +525,20 @@ export function PatientForm({
                   placeholder="Bangladeshi"
                   value={formData.nationality}
                   onChange={handleChange}
-                  className="h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.nationality && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.nationality && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.nationality}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Destination Country */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Destination Country / Embassy <span className="text-rose-500">*</span>
@@ -351,10 +549,20 @@ export function PatientForm({
                   placeholder="e.g. UAE/DUBAI, SAUDI ARABIA, QATAR"
                   value={formData.country}
                   onChange={handleChange}
-                  className="h-10 text-xs uppercase bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs uppercase bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.country && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.country && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.country}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Marital Status */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Marital Status
@@ -372,6 +580,7 @@ export function PatientForm({
                 </select>
               </div>
 
+              {/* Religion */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Religion
@@ -385,6 +594,7 @@ export function PatientForm({
                 />
               </div>
 
+              {/* Height */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Height (cm)
@@ -396,10 +606,20 @@ export function PatientForm({
                   placeholder="175.00"
                   value={formData.heightCm}
                   onChange={handleChange}
-                  className="h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.heightCm && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.heightCm && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.heightCm}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Weight */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Weight (kg)
@@ -411,10 +631,20 @@ export function PatientForm({
                   placeholder="68.00"
                   value={formData.weightKg}
                   onChange={handleChange}
-                  className="h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+                  className={cn(
+                    'h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.weightKg && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
                 />
+                {fieldErrors.weightKg && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.weightKg}</span>
+                  </p>
+                )}
               </div>
 
+              {/* Recruiting Agency */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Recruiting Agency
@@ -428,6 +658,7 @@ export function PatientForm({
                 />
               </div>
 
+              {/* Phone Number */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                   Phone Number
@@ -441,41 +672,76 @@ export function PatientForm({
                   className="h-10 text-xs font-mono bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
                 />
               </div>
+
+              {/* Email Address */}
+              <div className="sm:col-span-2 space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  Candidate Email Address
+                </label>
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="e.g. candidate@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={cn(
+                    'h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                    fieldErrors.email && 'border-rose-500 focus-visible:ring-rose-500 bg-rose-50/20 ring-1 ring-rose-500/50'
+                  )}
+                />
+                {fieldErrors.email && (
+                  <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                    <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                    <span>{fieldErrors.email}</span>
+                  </p>
+                )}
+              </div>
             </div>
           </CardContent>
 
-          <CardFooter className="py-4 px-4 sm:px-6 bg-slate-50/70 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
-            <Link
-              href={initialData?.id ? `/patients/${initialData.id}` : '/patients'}
-              className="w-full sm:w-auto"
-            >
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full sm:w-auto h-9 text-xs rounded-xl"
-              >
-                Cancel
-              </Button>
-            </Link>
-
-            <Button
-              type="submit"
-              disabled={loading || uploadingPhoto}
-              className="w-full sm:w-auto h-9 text-xs rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs gap-1.5 active:scale-95 transition-all"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Saving Record...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="h-3.5 w-3.5" />
-                  <span>{initialData ? 'Update Candidate Record' : 'Register Candidate'}</span>
-                </>
+          <CardFooter className="py-4 px-4 sm:px-6 bg-slate-50/70 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
+            <div className="w-full sm:w-auto">
+              {Object.keys(fieldErrors).length > 0 && (
+                <p className="text-[11px] text-rose-600 font-semibold flex items-center gap-1.5 animate-fadeInFast">
+                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>{Object.keys(fieldErrors).length} required field(s) need attention</span>
+                </p>
               )}
-            </Button>
+            </div>
+
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              <Link
+                href={initialData?.id ? `/patients/${initialData.id}` : '/patients'}
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+              </Link>
+
+              <Button
+                type="submit"
+                disabled={loading || uploadingPhoto}
+                className="w-full sm:w-auto h-9 text-xs rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs gap-1.5 active:scale-95 transition-all"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Saving Record...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3.5 w-3.5" />
+                    <span>{initialData ? 'Update Candidate Record' : 'Register Candidate'}</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </form>
