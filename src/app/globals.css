@@ -118,8 +118,6 @@ body {
     break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    max-height: 284mm !important;
-    overflow: hidden !important;
     box-sizing: border-box !important;
   }
   .print-page-2 {
@@ -129,8 +127,6 @@ body {
     break-after: avoid !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    max-height: 284mm !important;
-    overflow: hidden !important;
     box-sizing: border-box !important;
   }
 }

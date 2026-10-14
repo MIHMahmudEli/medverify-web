@@ -714,11 +714,11 @@ export default function PublicVerificationPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 sm:gap-6 print:gap-3">
-              <div className="text-right text-[11px] font-bold text-[#212529] print:text-[9px]">
+            <div className="flex flex-col items-end gap-1 print:gap-0.5">
+              <div className="text-right text-[11px] font-bold text-[#212529] print:text-[8.5px]">
                 Reg. Date: {formatDate(data?.registeredAt || rep?.examinationDate)}
               </div>
-              <div className="border border-[#212529] px-3 py-1 print:px-2 print:py-0.5 text-[10px] print:text-[8px] font-bold text-[#212529] bg-white">
+              <div className="border border-[#212529] px-3 py-0.5 print:px-2 print:py-[1px] text-[10px] print:text-[7.5px] font-bold text-[#212529] bg-white">
                 Finger Print
               </div>
             </div>
@@ -753,6 +753,7 @@ export default function PublicVerificationPage() {
               <div className="grid grid-cols-4 divide-x divide-[#212529] text-[10.5px] print:text-[8px] print:leading-none">
                 <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">AGE</div>
                 <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{ageDisplay}</div>
+                <div className="p-1.5 print:py-0.5 print:px-1 bg-slate-50 font-normal text-[#212529]">GENDER</div>
                 <div className="p-1.5 print:py-0.5 print:px-1 font-bold text-[#212529]">{pat?.gender || 'Male'}</div>
               </div>
               {/* Row 5 */}
@@ -772,8 +773,8 @@ export default function PublicVerificationPage() {
             </div>
 
             {/* Far Right: Patient Photo Box */}
-            <div className="p-1.5 print:p-1 flex flex-col items-center justify-center bg-white">
-              <div className="w-24 sm:w-28 h-28 sm:h-32 print:w-20 print:h-22 border border-slate-300 bg-white flex items-center justify-center overflow-hidden relative shadow-2xs">
+            <div className="p-1.5 print:p-0.5 flex flex-col items-center justify-center bg-white h-full">
+              <div className="w-24 sm:w-28 h-28 sm:h-32 print:w-full print:h-full border border-slate-300 bg-white flex items-center justify-center overflow-hidden relative shadow-2xs">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photoSrc}
@@ -798,221 +799,221 @@ export default function PublicVerificationPage() {
           {/* 5. CLINICAL EXAMINATION & LABORATORY TABLES (TWO SIDE-BY-SIDE TABLES) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-3 print:gap-2 text-xs pt-1 print:pt-0.5">
             {/* Left Column: Medical Examination Table */}
-            <div className="border border-[#212529] text-[10px] bg-white divide-y divide-[#212529]">
+            <div className="border border-[#212529] text-[10px] print:text-[7px] print:leading-tight bg-white divide-y divide-[#212529]">
               {/* Header */}
-              <div className="py-1 text-center font-bold text-[#212529] text-[11px] bg-slate-50 uppercase">
+              <div className="py-1 print:py-0.5 text-center font-bold text-[#212529] text-[11px] print:text-[7.5px] bg-slate-50 uppercase">
                 MEDICAL EXAMINATION
               </div>
               {/* Subheader */}
-              <div className="grid grid-cols-3 font-bold text-[#212529] bg-slate-100/70">
-                <div className="col-span-2 p-1 pl-2">TYPE OF THE EXAM</div>
-                <div className="p-1 text-center border-l border-[#212529]">RESULT</div>
+              <div className="grid grid-cols-3 font-bold text-[#212529] bg-slate-100/70 print:text-[7px]">
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">TYPE OF THE EXAM</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529]">RESULT</div>
               </div>
               {/* Eye Visual Acuity */}
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 flex items-center">EYE Visual Acuity</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 flex items-center">EYE Visual Acuity</div>
                 <div className="border-l border-[#212529] divide-y divide-[#212529]">
-                  <div className="p-0.5 text-center">R: {repData.eye_visual_acuity_r || '6/6'}</div>
-                  <div className="p-0.5 text-center">L: {repData.eye_visual_acuity_l || '6/6'}</div>
+                  <div className="p-0.5 print:py-[0.5px] text-center">R: {repData.eye_visual_acuity_r || '6/6'}</div>
+                  <div className="p-0.5 print:py-[0.5px] text-center">L: {repData.eye_visual_acuity_l || '6/6'}</div>
                 </div>
               </div>
               {/* Ear */}
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 flex items-center">EAR</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 flex items-center">EAR</div>
                 <div className="border-l border-[#212529] divide-y divide-[#212529]">
-                  <div className="p-0.5 text-center">R: {repData.ear_r || 'NAD'}</div>
-                  <div className="p-0.5 text-center">L: {repData.ear_l || 'NAD'}</div>
+                  <div className="p-0.5 print:py-[0.5px] text-center">R: {repData.ear_r || 'NAD'}</div>
+                  <div className="p-0.5 print:py-[0.5px] text-center">L: {repData.ear_l || 'NAD'}</div>
                 </div>
               </div>
               {/* Systemic Cardio */}
-              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+              <div className="py-0.5 print:py-[1px] text-center font-bold text-[#212529] bg-slate-100/70 uppercase print:text-[7px]">
                 SYSTEMIC EXAM: CARDIO-VASCULAR
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">B.P</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.blood_pressure || '120/80'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">B.P</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.blood_pressure || '120/80'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">HEART</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.heart || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">HEART</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.heart || 'NAD'}</div>
               </div>
               {/* Respiratory */}
-              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+              <div className="py-0.5 print:py-[1px] text-center font-bold text-[#212529] bg-slate-100/70 uppercase print:text-[7px]">
                 RESPIRATORY EXAM
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">LUNGS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.lungs || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">LUNGS</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.lungs || 'NAD'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">GASTROINTESTINAL ABDOMEN</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.abdomen || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">GASTROINTESTINAL ABDOMEN</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.abdomen || 'NAD'}</div>
               </div>
               {/* Others */}
-              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+              <div className="py-0.5 print:py-[1px] text-center font-bold text-[#212529] bg-slate-100/70 uppercase print:text-[7px]">
                 OTHERS
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">HERNIA</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.hernia || 'ABSENT'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">HERNIA</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.hernia || 'ABSENT'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">VARICOSE VEINS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.varicose_veins || 'ABSENT'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">VARICOSE VEINS</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.varicose_veins || 'ABSENT'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">DEFORMITIES</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.deformities || 'ABSENT'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">DEFORMITIES</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.deformities || 'ABSENT'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">SKIN</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.skin || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">SKIN</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.skin || 'NAD'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">C.N.S</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.cns || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">C.N.S</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.cns || 'NAD'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">EXTREMITIES</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.extremities || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">EXTREMITIES</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.extremities || 'NAD'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">PSYCHIATRY</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.psychiatry || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">PSYCHIATRY</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.psychiatry || 'NAD'}</div>
               </div>
               {/* Venereal */}
-              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+              <div className="py-0.5 print:py-[1px] text-center font-bold text-[#212529] bg-slate-100/70 uppercase print:text-[7px]">
                 VENEREAL DISEASE
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">SYMPTOMS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.venereal_symptoms || 'NAD'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">SYMPTOMS</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.venereal_symptoms || 'NAD'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">REMARKS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.exam_remarks || 'NORMAL'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">REMARKS</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.exam_remarks || 'NORMAL'}</div>
               </div>
               {/* X-Ray */}
-              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+              <div className="py-0.5 print:py-[1px] text-center font-bold text-[#212529] bg-slate-100/70 uppercase print:text-[7px]">
                 X-RAY INVESTIGATION
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">CHEST X-RAY</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{rep?.xrayFinding || repData.chest_xray || 'NORMAL'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">CHEST X-RAY</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{rep?.xrayFinding || repData.chest_xray || 'NORMAL'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">REMARKS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold text-red-600">{rep?.xrayRemarks || repData.xray_remarks || 'NORMAL'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">REMARKS</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold text-red-600">{rep?.xrayRemarks || repData.xray_remarks || 'NORMAL'}</div>
               </div>
             </div>
 
             {/* Right Column: Laboratory Investigation Table */}
-            <div className="border border-[#212529] text-[10px] bg-white divide-y divide-[#212529]">
+            <div className="border border-[#212529] text-[10px] print:text-[7px] print:leading-tight bg-white divide-y divide-[#212529]">
               {/* Header */}
-              <div className="py-1 text-center font-bold text-[#212529] text-[11px] bg-slate-50 uppercase">
+              <div className="py-1 print:py-0.5 text-center font-bold text-[#212529] text-[11px] print:text-[7.5px] bg-slate-50 uppercase">
                 LABORATORY INVESTIGATION
               </div>
               {/* Subheader */}
-              <div className="grid grid-cols-3 font-bold text-[#212529] bg-slate-100/70">
-                <div className="col-span-2 p-1 pl-2">TYPE OF THE EXAM</div>
-                <div className="p-1 text-center border-l border-[#212529]">RESULT</div>
+              <div className="grid grid-cols-3 font-bold text-[#212529] bg-slate-100/70 print:text-[7px]">
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">TYPE OF THE EXAM</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529]">RESULT</div>
               </div>
               {/* Urine */}
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">URINE FOR SUGAR - ALBUMIN</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.urine_sugar_albumin || 'NIL - NIL'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">URINE FOR SUGAR - ALBUMIN</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.urine_sugar_albumin || 'NIL - NIL'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">URINE FOR OPIATES - CANNABIS - AMPHETAMINE</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium text-[9px]">{repData.urine_opiates_cannabis || 'N/A - N/A - N/A'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">URINE FOR OPIATES - CANNABIS - AMPHETAMINE</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium text-[9px] print:text-[6.5px]">{repData.urine_opiates_cannabis || 'N/A - N/A - N/A'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">URINE FOR PREGNANCY TEST</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.urine_pregnancy || 'N/A'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">URINE FOR PREGNANCY TEST</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.urine_pregnancy || 'N/A'}</div>
               </div>
               {/* Others */}
-              <div className="py-0.5 text-center font-bold text-[#212529] bg-slate-100/70 uppercase">
+              <div className="py-0.5 print:py-[1px] text-center font-bold text-[#212529] bg-slate-100/70 uppercase print:text-[7px]">
                 OTHERS
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 font-bold">BLOOD GROUP</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold">{repData.blood_group || 'B (+VE)'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 font-bold">BLOOD GROUP</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold">{repData.blood_group || 'B (+VE)'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">HAEMOGLOBIN</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.haemoglobin || '14.2'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">HAEMOGLOBIN</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.haemoglobin || '14.2'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">ESR</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.esr || '12'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">ESR</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.esr || '12'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">R.B.S</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.rbs || '5.8'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">R.B.S</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.rbs || '5.8'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">S. CREATININE</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.s_creatinine || '1.0'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">S. CREATININE</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.s_creatinine || '1.0'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">S.BIL</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.s_bil || '0.85'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">S.BIL</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.s_bil || '0.85'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">SGPT</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.sgpt || '35'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">SGPT</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.sgpt || '35'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">SGOT</div>
-                <div className="p-1 text-center border-l border-[#212529] font-medium">{repData.sgot || '28'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">SGOT</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-medium">{repData.sgot || '28'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 font-bold">HIV I & HIV II</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.hiv || 'NEGATIVE'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 font-bold">HIV I & HIV II</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.hiv || 'NEGATIVE'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 font-bold">HBsAg</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.hbsag || 'NEGATIVE'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 font-bold">HBsAg</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.hbsag || 'NEGATIVE'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 font-bold">Anti HCV</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.anti_hcv || 'NEGATIVE'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 font-bold">Anti HCV</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.anti_hcv || 'NEGATIVE'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 font-bold">TPHA (IF VDRL POSITIVE)</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold">{repData.tpha || 'NEGATIVE'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 font-bold">TPHA (IF VDRL POSITIVE)</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold">{repData.tpha || 'NEGATIVE'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2 font-bold">VDRL</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.vdrl || 'NON REACTIVE'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1 font-bold">VDRL</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold text-emerald-700">{repData.vdrl || 'NON REACTIVE'}</div>
               </div>
               <div className="grid grid-cols-3">
-                <div className="col-span-2 p-1 pl-2">REMARKS</div>
-                <div className="p-1 text-center border-l border-[#212529] font-bold text-red-600">{repData.lab_remarks || 'NORMAL'}</div>
+                <div className="col-span-2 p-1 pl-2 print:py-[1.2px] print:pl-1">REMARKS</div>
+                <div className="p-1 print:py-[1.2px] print:px-0.5 text-center border-l border-[#212529] font-bold text-red-600">{repData.lab_remarks || 'NORMAL'}</div>
               </div>
             </div>
           </div>
 
           {/* 6. STATUS, CHEST X-RAY & CRYPTOGRAPHIC QR VERIFICATION SECTION */}
-          <div className="pt-3 print:pt-1 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-2 items-center">
+          <div className="pt-2 print:pt-1 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-3 print:gap-2 items-center">
             {/* Left: Status & Remarks */}
-            <div className="space-y-4 print:space-y-1">
+            <div className="space-y-3 print:space-y-1">
               <div className="flex items-center gap-3 print:gap-2">
-                <span className="text-xs print:text-[9.5px] font-normal text-[#212529]">HIS/HER STATUS: </span>
-                <span className="border border-red-600 px-3 py-0.5 print:px-2 print:py-[1px] text-xs print:text-[9.5px] font-bold text-[#212529] tracking-wider uppercase">
+                <span className="text-xs print:text-[8.5px] font-normal text-[#212529]">HIS/HER STATUS: </span>
+                <span className="border border-red-600 px-3 py-0.5 print:px-2 print:py-[0.5px] text-xs print:text-[8.5px] font-bold text-[#212529] tracking-wider uppercase">
                   {fitness}
                 </span>
               </div>
 
-              <div className="text-xs print:text-[9.5px] font-bold text-[#212529]">
+              <div className="text-xs print:text-[8.5px] font-bold text-[#212529]">
                 REMARKS: <span className="text-red-600">{rep?.finalRemarks || 'NORMAL'}</span>
               </div>
             </div>
 
             {/* Right: Chest X-Ray and QR Box side by side */}
-            <div className="grid grid-cols-2 gap-3 print:gap-2">
+            <div className="grid grid-cols-2 gap-2.5 print:gap-1.5">
               {/* Chest X-Ray Box */}
-              <div className="border border-[#212529] h-36 print:h-20 bg-black/5 flex flex-col items-center justify-center overflow-hidden p-1 print:p-0.5">
+              <div className="border border-[#212529] h-32 print:h-[84px] bg-black/5 flex flex-col items-center justify-center overflow-hidden p-1 print:p-0.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={xraySrc}
@@ -1032,8 +1033,8 @@ export default function PublicVerificationPage() {
               </div>
 
               {/* QR Verification Box */}
-              <div className="border border-[#212529] h-36 print:h-20 p-1.5 print:p-0.5 flex flex-col items-center justify-between text-center bg-white">
-                <div className="w-20 h-20 print:w-12 print:h-12 bg-white border border-slate-200 p-0.5 flex items-center justify-center">
+              <div className="border border-[#212529] h-32 print:h-[84px] p-1.5 print:p-0.5 flex flex-col items-center justify-between text-center bg-white">
+                <div className="w-16 h-16 print:w-11 print:h-11 bg-white border border-slate-200 p-0.5 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`)}`}
@@ -1043,18 +1044,18 @@ export default function PublicVerificationPage() {
                 </div>
                 <div className="space-y-0.5 print:space-y-0">
                   <span className="text-[8px] print:text-[6.5px] font-bold text-[#212529] block uppercase">SCAN TO VERIFY REPORT</span>
-                  <span className="text-[7.5px] print:text-[6px] text-slate-500 font-mono block">Reg: {regNumber}</span>
-                  <span className="text-[7px] print:text-[5.5px] font-bold text-emerald-700 block">Official Verification Portal</span>
+                  <span className="text-[7.5px] print:text-[5.5px] text-slate-500 font-mono block">Reg: {regNumber}</span>
+                  <span className="text-[7px] print:text-[5px] font-bold text-emerald-700 block">Official Verification Portal</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 7. AUTO-GENERATED DISCLAIMER & FOOTER */}
-          <div className="text-center pt-2 print:pt-0.5 border-t border-slate-300 text-[10px] print:text-[7.5px] text-[#212529]">
+          <div className="text-center pt-1.5 print:pt-0.5 border-t border-slate-300 text-[10px] print:text-[7px] text-[#212529]">
             This is an auto generated report, does not require any signature.
           </div>
-          <div className="flex items-center justify-between text-[8px] print:text-[7px] text-slate-400 pt-1 print:pt-0.5 border-t border-slate-200 font-mono">
+          <div className="flex items-center justify-between text-[8px] print:text-[6.5px] text-slate-400 pt-1 print:pt-0.5 border-t border-slate-200 font-mono">
             <span className="truncate">Online Verification: {typeof window !== 'undefined' ? window.location.href : `https://medverify-zeta.vercel.app/verify/${token}`}</span>
             <span className="font-bold text-slate-600 flex-shrink-0">Page 2/2</span>
           </div>
