@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Printer,
   Download,
   Clock,
   Layers,
@@ -121,10 +120,6 @@ export default function PublicVerificationPage() {
     }
   }, [token]);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleDownloadCombinedPdf = () => {
     const downloadUrl = `${API_BASE}/api/v1/public/verify/${token}/print-pdf`;
     window.open(downloadUrl, '_blank');
@@ -197,16 +192,6 @@ export default function PublicVerificationPage() {
                 <Download className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Download Combined 2-Page PDF</span>
               </Button>
-              <Button
-                size="sm"
-                onClick={handlePrint}
-                className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs h-8 px-2.5 sm:px-3 gap-1.5 shadow-sm"
-                title="Print Certificate & Report"
-                aria-label="Print Certificate & Report"
-              >
-                <Printer className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Print Certificate & Report</span>
-              </Button>
             </div>
           </div>
         ) : data?.status === 'DRAFT' ? (
@@ -241,16 +226,6 @@ export default function PublicVerificationPage() {
               >
                 <Download className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Download Draft PDF</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={handlePrint}
-                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs h-8 px-2.5 sm:px-3 gap-1.5 shadow-sm"
-                title="Print Draft Record"
-                aria-label="Print Draft Record"
-              >
-                <Printer className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Print Draft Record</span>
               </Button>
             </div>
           </div>
@@ -1080,17 +1055,6 @@ export default function PublicVerificationPage() {
           >
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Download Combined 2-Page PDF</span>
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={handlePrint}
-            className="gap-1.5 text-xs h-8 px-2.5 sm:px-3 bg-slate-900 hover:bg-slate-800 text-white"
-            title="Print Combined 2-Page Document"
-            aria-label="Print Combined 2-Page Document"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Print Combined 2-Page Document</span>
           </Button>
         </div>
       </div>

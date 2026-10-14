@@ -248,8 +248,7 @@ export function VerifyPageSkeleton() {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            <Skeleton className="h-8 w-8 sm:w-40 rounded-md bg-slate-700/80" />
-            <Skeleton className="h-8 w-8 sm:w-36 rounded-md bg-slate-700/80" />
+            <Skeleton className="h-8 w-8 sm:w-44 rounded-md bg-slate-700/80" />
           </div>
         </div>
       </div>
@@ -371,7 +370,6 @@ export function VerifyPageSkeleton() {
         <Skeleton className="h-4 w-48 sm:w-72 bg-slate-200" />
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <Skeleton className="h-8 w-8 sm:w-44 rounded-md bg-slate-200" />
-          <Skeleton className="h-8 w-8 sm:w-40 rounded-md bg-slate-200" />
         </div>
       </div>
     </div>
