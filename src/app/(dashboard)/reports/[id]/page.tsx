@@ -73,6 +73,10 @@ export default function ReportDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [showIssueCertModal, setShowIssueCertModal] = useState(false);
+  const [issueCertError, setIssueCertError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const [certificate, setCertificate] = useState<any>(null);
 
   const loadReport = async () => {
@@ -180,12 +184,12 @@ export default function ReportDetailPage() {
 
   const handleSubmitForReview = async () => {
     setActionLoading(true);
-    setError(null);
+    setActionError(null);
     try {
       await api.post(`/reports/${id}/submit`);
       await loadReport();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit report');
+      setActionError(err.message || 'Failed to submit report');
     } finally {
       setActionLoading(false);
     }
@@ -193,12 +197,13 @@ export default function ReportDetailPage() {
 
   const handleIssueCertificate = async () => {
     setActionLoading(true);
-    setError(null);
+    setIssueCertError(null);
     try {
       await api.post(`/reports/${id}/certificate`, {});
+      setShowIssueCertModal(false);
       await loadReport();
     } catch (err: any) {
-      setError(err.message || 'Failed to issue official certificate');
+      setIssueCertError(err.message || 'Failed to issue official certificate');
     } finally {
       setActionLoading(false);
     }
@@ -233,7 +238,7 @@ export default function ReportDetailPage() {
     return <ReportDetailSkeleton />;
   }
 
-  if (error || !report) {
+  if (!report) {
     return (
       <ErrorState
         title="Examination Report Not Found"
@@ -263,6 +268,25 @@ export default function ReportDetailPage() {
 
   return (
     <div className="space-y-6 w-full max-w-7xl mx-auto animate-fadeIn">
+      {actionError && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center justify-between gap-2.5 animate-fadeInFast"
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+            <span className="font-semibold leading-snug">{actionError}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActionError(null)}
+            className="h-7 px-2 text-[11px] border-rose-200 text-rose-800 hover:bg-rose-100"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
       {/* Top Header Card */}
       <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -389,7 +413,10 @@ export default function ReportDetailPage() {
                 variant="default"
                 size="sm"
                 disabled={actionLoading}
-                onClick={handleIssueCertificate}
+                onClick={() => {
+                  setIssueCertError(null);
+                  setShowIssueCertModal(true);
+                }}
                 className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
                 title="Issue Certificate"
                 aria-label="Issue Certificate"
@@ -1154,6 +1181,114 @@ export default function ReportDetailPage() {
                   className="h-9 text-xs rounded-xl font-semibold shadow-2xs"
                 >
                   {actionLoading ? 'Revoking...' : 'Confirm Revocation'}
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* ISSUE OFFICIAL MEDICAL FITNESS CERTIFICATE MODAL */}
+      {showIssueCertModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <Card className="max-w-md w-full bg-white shadow-2xl rounded-2xl border border-teal-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+              <CardHeader className="bg-teal-50/70 border-b border-teal-100 pb-3">
+                <CardTitle className="text-base font-bold text-teal-950 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-teal-600" />
+                  <span>Issue Official Medical Certificate</span>
+                </CardTitle>
+                <CardDescription className="text-xs text-teal-800/80">
+                  Formally issue an official certificate with a sequential certificate number and cryptographic QR code.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                {issueCertError && (
+                  <div
+                    role="alert"
+                    className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex flex-col gap-2.5 animate-fadeInFast"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 font-semibold leading-snug">
+                        {issueCertError}
+                      </div>
+                    </div>
+                    <div className="flex justify-end pt-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={actionLoading}
+                        onClick={handleIssueCertificate}
+                        className="h-7 px-2.5 text-[11px] gap-1.5 border-rose-200 text-rose-800 hover:bg-rose-100 hover:text-rose-950 font-semibold"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        <span>Retry Operation</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200 text-xs space-y-2.5">
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Candidate Name:</span>
+                    <span className="font-bold text-slate-900 uppercase">{p?.fullName || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Registration Number:</span>
+                    <span className="font-mono font-bold text-slate-900">{report.registrationNumber}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Passport Number:</span>
+                    <span className="font-mono font-bold text-slate-900">{p?.passportNumber || '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="text-slate-500 font-medium">Medical Decision:</span>
+                    <span>
+                      {report.finalMedicalStatus === 'FIT' ? (
+                        <Badge variant="fit">FIT (Medically Approved)</Badge>
+                      ) : report.finalMedicalStatus === 'UNFIT' ? (
+                        <Badge variant="unfit">UNFIT (Failed Criteria)</Badge>
+                      ) : (
+                        <Badge variant="pending">{report.finalMedicalStatus}</Badge>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-slate-500 leading-relaxed bg-teal-50/40 p-3 rounded-xl border border-teal-100/60">
+                  ℹ️ Once issued, an immutable snapshot will be locked, a sequential certificate number assigned, and a high-entropy QR authentication token activated for online foreign-mission and employer verification.
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between py-3.5 px-5 bg-slate-50/60 border-t border-slate-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={() => setShowIssueCertModal(false)}
+                  className="h-9 text-xs rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="clinical"
+                  size="sm"
+                  disabled={actionLoading}
+                  onClick={handleIssueCertificate}
+                  className="h-9 text-xs rounded-xl font-semibold shadow-2xs gap-1.5"
+                >
+                  {issueCertError ? (
+                    <>
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>{actionLoading ? 'Retrying...' : 'Retry Issuance'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span>{actionLoading ? 'Issuing Certificate...' : 'Confirm & Issue Certificate'}</span>
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>
