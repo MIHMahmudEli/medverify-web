@@ -51,6 +51,7 @@ export function CandidateCombobox({
 
   const [query, setQuery] = useState(selectedCandidate ? selectedCandidate.fullName : '');
   const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
 
   // Keep query in sync when selectedId changes externally
   useEffect(() => {
@@ -60,6 +61,22 @@ export function CandidateCombobox({
       setQuery('');
     }
   }, [selectedId, selectedCandidate]);
+
+  const filteredCandidates = candidates.filter((c) => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase().trim();
+    return (
+      c.fullName?.toLowerCase().includes(q) ||
+      c.passportNumber?.toLowerCase().includes(q) ||
+      c.country?.toLowerCase().includes(q) ||
+      c.agency?.toLowerCase().includes(q)
+    );
+  });
+
+  // Reset highlight index when filtered list changes or closes
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [filteredCandidates.length, isOpen]);
 
   // Click outside handler
   useEffect(() => {
@@ -80,17 +97,6 @@ export function CandidateCombobox({
     };
   }, [selectedCandidate]);
 
-  const filteredCandidates = candidates.filter((c) => {
-    if (!query.trim()) return true;
-    const q = query.toLowerCase().trim();
-    return (
-      c.fullName?.toLowerCase().includes(q) ||
-      c.passportNumber?.toLowerCase().includes(q) ||
-      c.country?.toLowerCase().includes(q) ||
-      c.agency?.toLowerCase().includes(q)
-    );
-  });
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setQuery(val);
@@ -98,6 +104,41 @@ export function CandidateCombobox({
     // If user edits text away from currently selected candidate, clear selectedId
     if (selectedCandidate && val.trim().toLowerCase() !== selectedCandidate.fullName.toLowerCase()) {
       onSelect('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+      } else {
+        setHighlightedIndex((prev) =>
+          prev < filteredCandidates.length - 1 ? prev + 1 : 0
+        );
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+      } else {
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredCandidates.length - 1
+        );
+      }
+    } else if (e.key === 'Enter') {
+      if (isOpen && filteredCandidates.length > 0) {
+        e.preventDefault();
+        const target =
+          highlightedIndex >= 0
+            ? filteredCandidates[highlightedIndex]
+            : filteredCandidates[0];
+        if (target) {
+          handleSelectCandidate(target);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
     }
   };
 
@@ -125,7 +166,7 @@ export function CandidateCombobox({
   const isConfirmedSelection = Boolean(selectedCandidate && selectedCandidate.id === selectedId);
 
   return (
-    <div className="relative w-full" ref={containerRef}>
+    <div className={cn('relative w-full', isOpen ? 'z-50' : 'z-10')} ref={containerRef}>
       {/* Inline Typeahead Input Field */}
       <div className="relative">
         <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
@@ -142,6 +183,7 @@ export function CandidateCombobox({
           disabled={disabled}
           value={query}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           onFocus={() => !disabled && setIsOpen(true)}
           placeholder={placeholder}
           autoComplete="off"
@@ -193,8 +235,8 @@ export function CandidateCombobox({
 
       {/* Suggestion Dropdown (Appears Directly as User Types) */}
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-scaleIn">
-          <div className="p-2 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-[100] bg-white rounded-2xl border border-slate-200/90 shadow-2xl ring-1 ring-slate-900/10 overflow-hidden animate-scaleIn min-w-full">
+          <div className="p-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
             <span>
               {filteredCandidates.length === 0
                 ? 'No matching candidates'
@@ -203,7 +245,7 @@ export function CandidateCombobox({
             <span className="text-[10px] text-teal-700 font-semibold uppercase">Selection Required</span>
           </div>
 
-          <div className="max-h-60 overflow-y-auto p-1.5 space-y-0.5 divide-y divide-slate-100/60">
+          <div className="max-h-72 overflow-y-auto p-1.5 space-y-0.5 divide-y divide-slate-100/60">
             {filteredCandidates.length === 0 ? (
               <div className="py-6 px-4 text-center space-y-2">
                 <div className="h-8 w-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
@@ -217,12 +259,14 @@ export function CandidateCombobox({
                 </p>
               </div>
             ) : (
-              filteredCandidates.map((c) => {
+              filteredCandidates.map((c, index) => {
                 const isSelected = c.id === selectedId;
+                const isHighlighted = highlightedIndex === index;
                 return (
                   <button
                     key={c.id}
                     type="button"
+                    onMouseEnter={() => setHighlightedIndex(index)}
                     onMouseDown={(e) => {
                       e.preventDefault(); // Prevent input blur before click registers
                       handleSelectCandidate(c);
@@ -230,7 +274,9 @@ export function CandidateCombobox({
                     className={cn(
                       'w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between gap-3 group',
                       isSelected
-                        ? 'bg-teal-50/80 text-teal-950 font-semibold'
+                        ? 'bg-teal-50/90 text-teal-950 font-semibold ring-1 ring-teal-500/20'
+                        : isHighlighted
+                        ? 'bg-slate-100/80 text-slate-900'
                         : 'hover:bg-slate-50 text-slate-700'
                     )}
                   >

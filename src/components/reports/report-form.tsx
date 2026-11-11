@@ -250,8 +250,8 @@ export function ReportForm({
       )}
 
       {/* 1. Candidate Selection, Issuing Organization & Date Header */}
-      <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
-        <CardHeader className="py-3.5 px-4 sm:px-6 bg-slate-50/60 border-b border-slate-100">
+      <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-visible relative z-30">
+        <CardHeader className="py-3.5 px-4 sm:px-6 bg-slate-50/60 border-b border-slate-100 rounded-t-2xl">
           <CardTitle className="text-sm font-bold text-slate-900">
             Candidate, Clinical Organization & Examination Date
           </CardTitle>
@@ -260,8 +260,8 @@ export function ReportForm({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
+        <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 overflow-visible">
+          <div className="space-y-1.5 relative z-40">
             <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               Candidate Selection <span className="text-rose-500">*</span>
             </label>
@@ -288,7 +288,7 @@ export function ReportForm({
             )}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 relative z-30">
             <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block flex items-center justify-between">
               <span>Issuing Center / Organization</span>
               {selectedOrg?.isDefault && (
@@ -305,7 +305,7 @@ export function ReportForm({
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 relative z-10">
             <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               Examination Date <span className="text-rose-500">*</span>
             </label>
