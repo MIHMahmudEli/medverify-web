@@ -375,6 +375,89 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
             </CardContent>
           </Card>
 
+          {/* Clinic Logo / Emblem Card (Directly under Live Dynamic Letterhead Banner Preview) */}
+          <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+            <CardHeader className="py-3 px-4 sm:px-5 bg-slate-50/70 border-b border-slate-100 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <ImageIcon className="h-4 w-4 text-teal-600" />
+                  <span>Clinic Logo / Emblem (Optional)</span>
+                </CardTitle>
+                <CardDescription className="text-[11px] text-slate-500 mt-0.5">
+                  Uploaded logos appear dynamically on the PDF report header letterhead and verification certificates. PNG, JPG or WebP (max 5MB).
+                </CardDescription>
+              </div>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'text-[10px] font-semibold',
+                  formData.logoUrl
+                    ? 'bg-teal-50 text-teal-800 border-teal-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                )}
+              >
+                {formData.logoUrl ? 'Custom Logo Active' : 'Default Caduceus Active'}
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl border border-slate-200/90 bg-slate-50/50">
+                <div className="h-20 w-20 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                  {formData.logoUrl ? (
+                    <img src={formData.logoUrl} alt="Logo preview" className="h-full w-full object-contain p-1" />
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-slate-300" />
+                  )}
+                </div>
+
+                <div className="space-y-1 text-center sm:text-left flex-1">
+                  <p className="text-xs font-semibold text-slate-800">
+                    {formData.logoUrl ? 'Custom Clinic Logo Active' : 'Default Medical Caduceus Emblem Active'}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Uploaded logos appear dynamically on the PDF report header letterhead and verification certificates. PNG, JPG or WebP (max 5MB).
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={handleLogoUpload}
+                        disabled={uploadingLogo}
+                      />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-2xs">
+                        {uploadingLogo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 text-teal-600" />}
+                        <span>Upload Custom Logo</span>
+                      </span>
+                    </label>
+                    {formData.logoUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, logoUrl: '' })}
+                        className="h-8 px-2.5 text-xs text-rose-600 hover:bg-rose-50 border-rose-200 rounded-lg gap-1"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Clear Logo</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Direct Logo URL Option */}
+                  <div className="pt-2">
+                    <Input
+                      value={formData.logoUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                      placeholder="Or enter direct image URL (https://...)"
+                      className="h-8 text-[11px] rounded-lg max-w-md bg-white border-slate-200"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
             <CardHeader className="p-5 border-b border-slate-100">
               <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -506,68 +589,6 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                       <span>{fieldErrors.orgEmail}</span>
                     </p>
                   )}
-                </div>
-              </div>
-
-              {/* Logo Upload Section */}
-              <div className="pt-2 border-t border-slate-100">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-2">
-                  Clinic Logo / Emblem (Optional)
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl border border-slate-200/90 bg-slate-50/50">
-                  <div className="h-20 w-20 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                    {formData.logoUrl ? (
-                      <img src={formData.logoUrl} alt="Logo preview" className="h-full w-full object-contain p-1" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-slate-300" />
-                    )}
-                  </div>
-
-                  <div className="space-y-1 text-center sm:text-left flex-1">
-                    <p className="text-xs font-semibold text-slate-800">
-                      {formData.logoUrl ? 'Custom Clinic Logo Active' : 'Default Medical Caduceus Emblem Active'}
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Uploaded logos appear dynamically on the PDF report header letterhead and verification certificates. PNG, JPG or WebP (max 5MB).
-                    </p>
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          className="hidden"
-                          onChange={handleLogoUpload}
-                          disabled={uploadingLogo}
-                        />
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-2xs">
-                          {uploadingLogo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 text-teal-600" />}
-                          <span>Upload Custom Logo</span>
-                        </span>
-                      </label>
-                      {formData.logoUrl && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setFormData({ ...formData, logoUrl: '' })}
-                          className="h-8 px-2.5 text-xs text-rose-600 hover:bg-rose-50 border-rose-200 rounded-lg gap-1"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          <span>Clear Logo</span>
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Direct Logo URL Option */}
-                    <div className="pt-2">
-                      <Input
-                        value={formData.logoUrl || ''}
-                        onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                        placeholder="Or enter direct image URL (https://...)"
-                        className="h-8 text-[11px] rounded-lg max-w-md bg-white border-slate-200"
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
 

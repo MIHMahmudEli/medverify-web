@@ -134,18 +134,25 @@ export default function OrganizationsPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((n) => (
-            <Card key={n} className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-12 w-12 rounded-lg" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <Card key={n} className="rounded-2xl border border-slate-200/90 p-4 space-y-3 bg-white shadow-2xs flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-11 w-11 rounded-xl flex-shrink-0" />
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <Skeleton className="h-4 w-3/4 rounded-md" />
+                    <Skeleton className="h-3 w-1/2 rounded-md" />
+                  </div>
                 </div>
+                <Skeleton className="h-6 w-full rounded-md" />
+                <Skeleton className="h-14 w-full rounded-xl" />
+                <Skeleton className="h-4 w-28 rounded-md" />
               </div>
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-8 w-full" />
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <Skeleton className="h-8 w-24 rounded-lg" />
+                <Skeleton className="h-8 w-16 rounded-lg" />
+              </div>
             </Card>
           ))}
         </div>
@@ -180,7 +187,7 @@ export default function OrganizationsPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredOrgs.map((org) => {
             const isProcessing = actionLoading === org.id;
 
@@ -188,17 +195,17 @@ export default function OrganizationsPage() {
               <Card
                 key={org.id}
                 className={cn(
-                  'relative flex flex-col justify-between border transition-all duration-200 shadow-sm hover:shadow-md',
+                  'relative rounded-2xl border transition-all duration-200 shadow-2xs hover:shadow-card hover:border-slate-300 flex flex-col justify-between overflow-hidden bg-white group',
                   org.isDefault
-                    ? 'border-emerald-300 bg-gradient-to-br from-emerald-50/20 via-white to-white ring-1 ring-emerald-500/20'
-                    : 'border-slate-200 bg-white'
+                    ? 'border-emerald-300/90 bg-gradient-to-b from-emerald-50/25 via-white to-white ring-1 ring-emerald-500/20'
+                    : 'border-slate-200/90'
                 )}
               >
                 <div>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3.5">
-                        <div className="h-12 w-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                  <div className="p-4 pb-3">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <div className="h-11 w-11 rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                           {org.logoUrl ? (
                             <img
                               src={org.logoUrl}
@@ -206,125 +213,106 @@ export default function OrganizationsPage() {
                               className="h-full w-full object-contain p-1"
                             />
                           ) : (
-                            <Building2 className="h-6 w-6 text-slate-400" />
+                            <Building2 className="h-5 w-5 text-slate-400" />
                           )}
                         </div>
 
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-bold text-slate-900 text-base leading-snug">
-                              {org.orgName}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className="font-mono text-[11px] font-semibold tracking-wider bg-slate-100 text-slate-700 uppercase"
-                            >
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-slate-900 text-sm truncate leading-snug group-hover:text-teal-700 transition-colors">
+                            {org.orgName}
+                          </h3>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 uppercase">
                               {org.orgCode}
-                            </Badge>
+                            </span>
+                            {org.isDefault && (
+                              <span className="inline-flex items-center gap-0.5 text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
+                                <Star className="h-2.5 w-2.5 fill-emerald-600 text-emerald-600" />
+                                Default
+                              </span>
+                            )}
+                            <span
+                              className={cn(
+                                'text-[9.5px] font-semibold px-1.5 py-0.2 rounded-full',
+                                org.isActive !== false
+                                  ? 'bg-teal-50 text-teal-800 border border-teal-200'
+                                  : 'bg-slate-100 text-slate-500 border border-slate-200'
+                              )}
+                            >
+                              {org.isActive !== false ? 'Active' : 'Inactive'}
+                            </span>
                           </div>
-                          <p className="text-xs text-slate-600 line-clamp-1 mt-0.5">
-                            {org.reportHeaderTitle || 'Medical Diagnostic Center'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        {org.isDefault && (
-                          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[11px] shadow-2xs flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-white" />
-                            Default Primary
-                          </Badge>
-                        )}
-                        <Badge
-                          variant={org.isActive !== false ? 'fit' : 'secondary'}
-                          className="text-[10px]"
-                        >
-                          {org.isActive !== false ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-3.5 text-xs text-slate-600 border-t border-slate-100 pt-3.5">
-                    {/* Location & Contact */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">
-                          {org.orgAddress}
-                          {org.orgAddressLine2 ? `, ${org.orgAddressLine2}` : ''}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 flex-wrap pt-0.5">
-                        {org.orgPhone && (
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <Phone className="h-3.5 w-3.5 text-slate-400" />
-                            <span>{org.orgPhone}</span>
-                          </div>
-                        )}
-                        {org.orgEmail && (
-                          <div className="flex items-center gap-1.5 text-slate-600">
-                            <Mail className="h-3.5 w-3.5 text-slate-400" />
-                            <span>{org.orgEmail}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Signatory & Certificate Settings */}
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-600 font-medium">Certificate Prefix:</span>
-                        <span className="font-mono font-bold text-slate-800">
-                          {org.certificateNumberPrefix || 'MC'}-YYYY-XXXXX
-                        </span>
-                      </div>
-                      <div className="flex items-start justify-between text-[11px] pt-1 border-t border-slate-200/60">
-                        <span className="text-slate-600 font-medium">Medical Signatory:</span>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-800">{org.signatoryName || 'N/A'}</p>
-                          <p className="text-[10px] text-slate-600">{org.signatoryDesignation}</p>
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Stats & Metadata */}
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                        <FileText className="h-3.5 w-3.5 text-blue-500" />
-                        <span>
-                          <strong className="text-slate-900">{org.reportCount || 0}</strong> Reports Linked
+                  <div className="px-4 pb-3 space-y-2.5 text-xs text-slate-600">
+                    {/* Location */}
+                    <p className="text-[11px] text-slate-500 flex items-start gap-1.5 line-clamp-2">
+                      <MapPin className="h-3 w-3 text-slate-400 mt-0.5 flex-shrink-0" />
+                      <span>{org.orgAddress || 'Address not configured'}</span>
+                    </p>
+
+                    {/* Signatory & Prefix Box */}
+                    <div className="p-2.5 rounded-xl bg-slate-50/70 border border-slate-100/90 space-y-1 text-[11px]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[10.5px]">Certificate Prefix:</span>
+                        <span className="font-mono font-bold text-slate-800 text-[11px]">
+                          {org.certificateNumberPrefix || org.orgCode || 'MC'}-YYYY
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[10.5px]">Signatory:</span>
+                        <span className="font-semibold text-slate-800 truncate max-w-[150px] text-[11px]">
+                          {org.signatoryName || 'Medical Director'}
                         </span>
                       </div>
                     </div>
-                  </CardContent>
+
+                    {/* Stats & Reports Count */}
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                      <span className="flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5 text-teal-600" />
+                        <span>Reports Linked</span>
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">
+                        {org.reportCount || 0}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <CardFooter className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 p-3 mt-4 gap-2">
-                  <div className="flex items-center gap-2">
-                    {!org.isDefault && (
+                <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 p-2.5 px-4 mt-2 gap-2">
+                  <div>
+                    {!org.isDefault ? (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs h-8 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200"
+                        className="h-7 px-2.5 text-[11px] text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200 rounded-lg gap-1"
                         onClick={() => handleSetDefault(org)}
                         disabled={isProcessing}
                       >
                         {isProcessing ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
                         ) : (
-                          <Star className="h-3.5 w-3.5 mr-1" />
+                          <Star className="h-3 w-3 mr-0.5" />
                         )}
-                        Set as Default
+                        Set Default
                       </Button>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                        Primary Center
+                      </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Link href={`/organizations/${org.id}`}>
-                      <Button size="sm" variant="outline" className="text-xs h-8">
-                        <Edit className="h-3.5 w-3.5 mr-1 text-slate-600" />
-                        Edit Facility
+                      <Button size="sm" variant="outline" className="h-7 px-2.5 text-[11px] rounded-lg border-slate-200 gap-1 hover:border-slate-300">
+                        <Edit className="h-3 w-3 text-slate-500" />
+                        <span>Edit</span>
                       </Button>
                     </Link>
 
@@ -332,18 +320,19 @@ export default function OrganizationsPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-xs h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                        className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
                         onClick={() => {
                           setDeleteError(null);
                           setOrgToDelete(org);
                         }}
                         disabled={isProcessing}
+                        title="Delete organization"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>
-                </CardFooter>
+                </div>
               </Card>
             );
           })}
