@@ -371,6 +371,16 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                         </Button>
                       )}
                     </div>
+
+                    {/* Direct Logo URL Option */}
+                    <div className="pt-2">
+                      <Input
+                        value={formData.logoUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                        placeholder="Or enter direct image URL (https://...)"
+                        className="h-8 text-[11px] rounded-lg max-w-md bg-white border-slate-200"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -555,6 +565,16 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                           <span>Clear Signature</span>
                         </Button>
                       )}
+                    </div>
+
+                    {/* Direct Signature URL Option */}
+                    <div className="pt-2">
+                      <Input
+                        value={formData.signatorySignatureUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, signatorySignatureUrl: e.target.value })}
+                        placeholder="Or enter direct signature image URL (https://...)"
+                        className="h-8 text-[11px] rounded-lg max-w-md bg-white border-slate-200"
+                      />
                     </div>
                   </div>
                 </div>
