@@ -34,6 +34,7 @@ interface CandidateComboboxProps {
   disabled?: boolean;
   error?: string;
   placeholder?: string;
+  id?: string;
 }
 
 export function CandidateCombobox({
@@ -43,6 +44,7 @@ export function CandidateCombobox({
   disabled = false,
   error,
   placeholder = 'Type candidate name or passport number...',
+  id,
 }: CandidateComboboxProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -179,6 +181,7 @@ export function CandidateCombobox({
 
         <input
           ref={inputRef}
+          id={id}
           type="text"
           disabled={disabled}
           value={query}
@@ -192,7 +195,7 @@ export function CandidateCombobox({
             isConfirmedSelection
               ? 'border-teal-500/80 bg-teal-50/20 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500/20'
               : error
-              ? 'border-rose-400 ring-1 ring-rose-400 bg-rose-50/20 text-slate-900'
+              ? 'border-rose-400 ring-2 ring-rose-400/30 bg-rose-50/20 text-slate-900'
               : 'border-slate-200 text-slate-800 placeholder:text-slate-400 hover:border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20',
             disabled && 'opacity-60 cursor-not-allowed bg-slate-50'
           )}
@@ -232,6 +235,13 @@ export function CandidateCombobox({
           )}
         </div>
       </div>
+
+      {error && !isConfirmedSelection && (
+        <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+          <AlertCircle className="h-3 w-3 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
 
       {/* Suggestion Dropdown (Appears Directly as User Types) */}
       {isOpen && !disabled && (

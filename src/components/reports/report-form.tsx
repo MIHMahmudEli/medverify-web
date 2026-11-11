@@ -27,6 +27,7 @@ import {
 import Link from 'next/link';
 import { CandidateCombobox } from '@/components/ui/candidate-combobox';
 import { OrganizationCombobox } from '@/components/ui/organization-combobox';
+import { cn } from '@/lib/utils';
 
 interface ReportFormProps {
   initialReport?: any;
@@ -108,6 +109,7 @@ export function ReportForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleXrayFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -175,14 +177,91 @@ export function ReportForm({
 
   const handleFieldChange = (key: string, value: any) => {
     setReportData((prev) => ({ ...prev, [key]: value }));
+    if (fieldErrors[key]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+    if (error) setError(null);
+  };
+
+  const validateReportForm = (): {
+    errors: Record<string, string>;
+    firstError: { id: string; label: string; elementId: string } | null;
+  } => {
+    const errors: Record<string, string> = {};
+    let firstError: { id: string; label: string; elementId: string } | null = null;
+
+    const addErr = (id: string, label: string, message: string, elementId: string) => {
+      errors[id] = message;
+      if (!firstError) {
+        firstError = { id, label, elementId };
+      }
+    };
+
+    if (!selectedPatientId) {
+      addErr('candidate', 'Candidate Selection', 'Please select an authenticated candidate profile.', 'field-candidate');
+    }
+
+    if (!selectedOrganizationId && organizations.length > 0) {
+      addErr('organization', 'Issuing Center / Organization', 'Please select an issuing clinical diagnostic facility.', 'field-organization');
+    }
+
+    if (!registeredAt) {
+      addErr('registeredAt', 'Examination Date', 'Please provide a valid examination date.', 'field-registeredAt');
+    }
+
+    if (!reportData.blood_pressure || !reportData.blood_pressure.trim()) {
+      addErr('blood_pressure', 'Blood Pressure (B.P)', 'Blood pressure assessment reading is required (e.g. 120/80).', 'field-blood_pressure');
+    }
+
+    if (!reportData.blood_group || !reportData.blood_group.trim()) {
+      addErr('blood_group', 'Blood Group', 'Candidate blood group is required.', 'field-blood_group');
+    }
+
+    if (!xrayFinding || !xrayFinding.trim()) {
+      addErr('xrayFinding', 'Chest X-Ray Finding', 'Chest X-Ray radiological finding is required.', 'field-xrayFinding');
+    }
+
+    return { errors, firstError };
   };
 
   const handleSave = async (submitForReview = false) => {
+    // Candidate selection is required for any action
     if (!selectedPatientId) {
-      setError('Please select a candidate before saving the report');
+      setFieldErrors({ candidate: 'Candidate selection is required before proceeding.' });
+      setError('Cannot proceed: Please select an authenticated candidate.');
+      setTimeout(() => {
+        const el = document.getElementById('field-candidate');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
+      }, 100);
       return;
     }
 
+    // Full validation check for submitting for review
+    if (submitForReview) {
+      const validation = validateReportForm();
+      if (validation.firstError) {
+        const target = validation.firstError;
+        setFieldErrors(validation.errors);
+        setError(`Cannot submit for review: Please complete "${target.label}". ${validation.errors[target.id]}`);
+        setTimeout(() => {
+          const el = document.getElementById(target.elementId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.focus();
+          }
+        }, 100);
+        return;
+      }
+    }
+
+    setFieldErrors({});
     setError(null);
     setLoading(true);
 
@@ -220,7 +299,17 @@ export function ReportForm({
 
       router.push(`/reports/${reportId}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to save medical report');
+      const errMsg = err.message || 'Failed to save medical report';
+      setError(errMsg);
+      // Immediately redirect screen to error banner
+      setTimeout(() => {
+        const banner = document.getElementById('report-form-error-banner');
+        if (banner) {
+          banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
     } finally {
       setLoading(false);
     }
@@ -241,11 +330,29 @@ export function ReportForm({
 
       {error && (
         <div
+          id="report-form-error-banner"
           role="alert"
-          className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-3 animate-fadeInFast shadow-2xs"
+          className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start justify-between gap-3 animate-fadeInFast shadow-2xs"
         >
-          <AlertCircle className="h-5 w-5 flex-shrink-0 text-rose-600 mt-0.5" />
-          <span className="leading-relaxed">{error}</span>
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-rose-600 mt-0.5" />
+            <div>
+              <p className="font-bold text-rose-900">Submission Blocked — Action Required</p>
+              <p className="leading-relaxed mt-0.5">{error}</p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setError(null);
+              setFieldErrors({});
+            }}
+            className="h-7 px-2.5 text-[11px] border-rose-200 text-rose-800 hover:bg-rose-100 rounded-lg flex-shrink-0"
+          >
+            Dismiss
+          </Button>
         </div>
       )}
 
@@ -276,13 +383,21 @@ export function ReportForm({
               </div>
             ) : (
               <CandidateCombobox
+                id="field-candidate"
                 candidates={patients}
                 selectedId={selectedPatientId}
                 onSelect={(id) => {
                   setSelectedPatientId(id);
+                  if (fieldErrors.candidate) {
+                    setFieldErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.candidate;
+                      return next;
+                    });
+                  }
                   if (error) setError(null);
                 }}
-                error={error && !selectedPatientId ? error : undefined}
+                error={fieldErrors.candidate}
                 placeholder="Search candidate by name, passport..."
               />
             )}
@@ -298,9 +413,21 @@ export function ReportForm({
               )}
             </label>
             <OrganizationCombobox
+              id="field-organization"
               organizations={organizations}
               selectedId={selectedOrganizationId}
-              onSelect={(id) => setSelectedOrganizationId(id)}
+              onSelect={(id) => {
+                setSelectedOrganizationId(id);
+                if (fieldErrors.organization) {
+                  setFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.organization;
+                    return next;
+                  });
+                }
+                if (error) setError(null);
+              }}
+              error={fieldErrors.organization}
               placeholder="Select issuing facility..."
             />
           </div>
@@ -310,11 +437,31 @@ export function ReportForm({
               Examination Date <span className="text-rose-500">*</span>
             </label>
             <Input
+              id="field-registeredAt"
               type="date"
               value={registeredAt}
-              onChange={(e) => setRegisteredAt(e.target.value)}
-              className="h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl"
+              onChange={(e) => {
+                setRegisteredAt(e.target.value);
+                if (fieldErrors.registeredAt) {
+                  setFieldErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.registeredAt;
+                    return next;
+                  });
+                }
+                if (error) setError(null);
+              }}
+              className={cn(
+                'h-10 text-xs bg-white border-slate-200 focus-visible:ring-slate-900 rounded-xl transition-all',
+                fieldErrors.registeredAt && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+              )}
             />
+            {fieldErrors.registeredAt && (
+              <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                <span>{fieldErrors.registeredAt}</span>
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -380,14 +527,24 @@ export function ReportForm({
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Blood Pressure (B.P)
+                  Blood Pressure (B.P) <span className="text-rose-500">*</span>
                 </label>
                 <Input
+                  id="field-blood_pressure"
                   placeholder="120/80"
                   value={reportData.blood_pressure}
                   onChange={(e) => handleFieldChange('blood_pressure', e.target.value)}
-                  className="h-9 text-xs rounded-xl"
+                  className={cn(
+                    'h-9 text-xs rounded-xl transition-all',
+                    fieldErrors.blood_pressure && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                  )}
                 />
+                {fieldErrors.blood_pressure && (
+                  <p className="text-[10px] text-rose-600 font-medium flex items-center gap-1 mt-0.5 animate-fadeInFast">
+                    <AlertCircle className="h-2.5 w-2.5 flex-shrink-0" />
+                    <span>{fieldErrors.blood_pressure}</span>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -606,14 +763,24 @@ export function ReportForm({
             <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
-                  Blood Group
+                  Blood Group <span className="text-rose-500">*</span>
                 </label>
                 <Input
+                  id="field-blood_group"
                   placeholder="B (+VE)"
                   value={reportData.blood_group}
                   onChange={(e) => handleFieldChange('blood_group', e.target.value)}
-                  className="h-9 text-xs rounded-xl"
+                  className={cn(
+                    'h-9 text-xs rounded-xl transition-all',
+                    fieldErrors.blood_group && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                  )}
                 />
+                {fieldErrors.blood_group && (
+                  <p className="text-[10px] text-rose-600 font-medium flex items-center gap-1 mt-0.5 animate-fadeInFast">
+                    <AlertCircle className="h-2.5 w-2.5 flex-shrink-0" />
+                    <span>{fieldErrors.blood_group}</span>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -815,14 +982,34 @@ export function ReportForm({
           <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                Chest X-Ray Finding
+                Chest X-Ray Finding <span className="text-rose-500">*</span>
               </label>
               <Input
+                id="field-xrayFinding"
                 placeholder="NORMAL"
                 value={xrayFinding}
-                onChange={(e) => setXrayFinding(e.target.value)}
-                className="h-10 text-xs rounded-xl"
+                onChange={(e) => {
+                  setXrayFinding(e.target.value);
+                  if (fieldErrors.xrayFinding) {
+                    setFieldErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.xrayFinding;
+                      return next;
+                    });
+                  }
+                  if (error) setError(null);
+                }}
+                className={cn(
+                  'h-10 text-xs rounded-xl transition-all',
+                  fieldErrors.xrayFinding && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                )}
               />
+              {fieldErrors.xrayFinding && (
+                <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                  <span>{fieldErrors.xrayFinding}</span>
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -906,11 +1093,23 @@ export function ReportForm({
 
       {/* Sticky Bottom Actions Bar */}
       <div className="p-4 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-float flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 z-20">
-        <span className="text-xs text-slate-500 text-center sm:text-left">
-          Values persist to PostgreSQL. Final medical fitness is evaluated during doctor sign-off.
-        </span>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto overflow-hidden">
+          {error ? (
+            <div
+              role="alert"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold animate-fadeInFast max-w-full"
+            >
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-600" />
+              <span className="truncate max-w-[260px] sm:max-w-md">{error}</span>
+            </div>
+          ) : (
+            <span className="text-xs text-slate-500 text-center sm:text-left">
+              Values persist to PostgreSQL. Final medical fitness is evaluated during doctor sign-off.
+            </span>
+          )}
+        </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
           <Button
             type="button"
             variant="outline"

@@ -11,6 +11,7 @@ import {
   Star,
   MapPin,
   CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ interface OrganizationComboboxProps {
   disabled?: boolean;
   error?: string;
   placeholder?: string;
+  id?: string;
 }
 
 export function OrganizationCombobox({
@@ -42,6 +44,7 @@ export function OrganizationCombobox({
   disabled = false,
   error,
   placeholder = 'Type facility name or prefix code...',
+  id,
 }: OrganizationComboboxProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -168,6 +171,7 @@ export function OrganizationCombobox({
 
         <input
           ref={inputRef}
+          id={id}
           type="text"
           disabled={disabled}
           value={query}
@@ -181,7 +185,7 @@ export function OrganizationCombobox({
             isConfirmedSelection
               ? 'border-teal-500/80 bg-teal-50/20 text-slate-900 font-semibold focus:ring-2 focus:ring-teal-500/20'
               : error
-              ? 'border-rose-400 ring-1 ring-rose-400 bg-rose-50/20 text-slate-900'
+              ? 'border-rose-400 ring-2 ring-rose-400/30 bg-rose-50/20 text-slate-900'
               : 'border-slate-200 text-slate-800 placeholder:text-slate-400 hover:border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20',
             disabled && 'opacity-60 cursor-not-allowed bg-slate-50'
           )}
@@ -221,6 +225,13 @@ export function OrganizationCombobox({
           )}
         </div>
       </div>
+
+      {error && !isConfirmedSelection && (
+        <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+          <AlertCircle className="h-3 w-3 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
 
       {/* Suggestion Dropdown (Appears Directly as User Types) */}
       {isOpen && !disabled && (
