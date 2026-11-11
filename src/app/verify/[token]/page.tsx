@@ -167,13 +167,13 @@ export default function PublicVerificationPage() {
   const ageDisplay = pat?.dateOfBirth ? calculateAge(pat.dateOfBirth) : '28 Y';
 
   return (
-    <div className="min-h-screen bg-slate-200/80 py-8 px-2 sm:px-4 flex flex-col items-center print:bg-white print:p-0 print:m-0 font-sans">
+    <div className="min-h-screen bg-slate-200/80 py-4 sm:py-8 px-2 sm:px-4 flex flex-col items-center print:bg-white print:p-0 print:m-0 font-sans">
       {/* 1. TOP STICKY ACTION HEADER (HIDDEN IN PRINT) */}
-      <div className="w-full max-w-4xl space-y-3 mb-6 print:hidden">
+      <div className="w-full max-w-4xl space-y-3 mb-4 sm:mb-6 print:hidden">
         {data?.status === 'VALID' ? (
-          <div className="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 text-white rounded-xl shadow-md flex items-center justify-between gap-3 border border-emerald-500/30">
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 text-white rounded-2xl shadow-md flex items-center justify-between gap-3 border border-emerald-500/30">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center flex-shrink-0 text-emerald-300">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center flex-shrink-0 text-emerald-300">
                 <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div className="min-w-0">
@@ -185,7 +185,7 @@ export default function PublicVerificationPage() {
                     GENUINE & ACTIVE
                   </Badge>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-emerald-100/80 mt-0.5 truncate sm:whitespace-normal">
+                <p className="text-[10px] sm:text-[11px] text-emerald-100/80 mt-0.5 line-clamp-1 sm:whitespace-normal">
                   Issued by {orgName} • Authenticated via MedVerify Digital Health Ledger
                 </p>
               </div>
@@ -196,19 +196,20 @@ export default function PublicVerificationPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadCombinedPdf}
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 px-2.5 sm:px-3 gap-1.5"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 px-2.5 sm:px-3 gap-1.5 rounded-xl"
                 title="Download Combined 2-Page PDF"
                 aria-label="Download Combined 2-Page PDF"
               >
                 <Download className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Download Combined 2-Page PDF</span>
+                <span className="sm:hidden font-semibold">PDF</span>
               </Button>
             </div>
           </div>
         ) : data?.status === 'DRAFT' ? (
-          <div className="p-3.5 sm:p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white rounded-xl shadow-md flex items-center justify-between gap-3 border border-amber-400/40">
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white rounded-2xl shadow-md flex items-center justify-between gap-3 border border-amber-400/40">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-amber-400/20 border border-amber-300/40 flex items-center justify-center flex-shrink-0 text-amber-200">
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center flex-shrink-0 text-amber-200">
                 <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div className="min-w-0">
@@ -220,7 +221,7 @@ export default function PublicVerificationPage() {
                     DRAFT
                   </Badge>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-amber-100/90 mt-0.5 truncate sm:whitespace-normal">
+                <p className="text-[10px] sm:text-[11px] text-amber-100/90 mt-0.5 line-clamp-1 sm:whitespace-normal">
                   This examination has not yet been finalized or approved by the authorized medical examiner.
                 </p>
               </div>
@@ -231,12 +232,13 @@ export default function PublicVerificationPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadCombinedPdf}
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 px-2.5 sm:px-3 gap-1.5"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs h-8 px-2.5 sm:px-3 gap-1.5 rounded-xl"
                 title="Download Draft PDF"
                 aria-label="Download Draft PDF"
               >
                 <Download className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Download Draft PDF</span>
+                <span className="sm:hidden font-semibold">PDF</span>
               </Button>
             </div>
           </div>
@@ -300,11 +302,11 @@ export default function PublicVerificationPage() {
       </div>
 
       {/* 2. PAGE 1: OFFICIAL MEDICAL FITNESS CERTIFICATE (EXACT MATCH TO REFERENCE PDF PAGE 1) */}
-      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-8 relative print:shadow-none print:border-none print:p-0 print-page-1">
+      <div className="w-full max-w-4xl bg-white shadow-xl sm:shadow-2xl rounded-2xl sm:rounded-sm border border-slate-300 p-2.5 sm:p-8 relative print:shadow-none print:border-none print:p-0 print-page-1">
         {/* Ornate Certificate Outer Frame & Corner Accents */}
-        <div className="border-[2px] border-[#1e3a5f] p-4 sm:p-6 relative rounded-sm">
+        <div className="border-[2px] border-[#1e3a5f] p-3 sm:p-6 relative rounded-xl sm:rounded-sm">
           {/* Inner fine gold accent border */}
-          <div className="absolute inset-1.5 border border-[#c5a059] pointer-events-none rounded-2xs" />
+          <div className="absolute inset-1.5 border border-[#c5a059] pointer-events-none rounded-lg sm:rounded-2xs" />
 
           {/* Corner marks */}
           <div className="absolute top-2.5 left-2.5 w-4 h-4 border-t-2 border-l-2 border-[#c5a059] pointer-events-none" />
@@ -650,18 +652,19 @@ export default function PublicVerificationPage() {
       </div>
 
       {/* 3. VISUAL SEPARATOR BETWEEN PAGE 1 AND PAGE 2 */}
-      <div className="w-full max-w-4xl my-6 flex items-center justify-between px-2 text-xs text-slate-500 print:hidden">
+      <div className="w-full max-w-4xl my-4 sm:my-6 flex items-center justify-between px-2 text-xs text-slate-500 print:hidden">
         <div className="h-px bg-slate-300 flex-1" />
         <div className="px-3 flex items-center gap-2 font-semibold uppercase tracking-wider text-slate-600">
           <Layers className="h-4 w-4 text-teal-600" />
-          <span>Page 2: Associated Detailed Medical Test Report (Print & Record Copy)</span>
+          <span className="hidden sm:inline">Page 2: Associated Detailed Medical Test Report (Print & Record Copy)</span>
+          <span className="sm:hidden text-[11px]">Page 2: Detailed Clinical Test Report</span>
         </div>
         <div className="h-px bg-slate-300 flex-1" />
       </div>
 
       {/* 4. PAGE 2: DETAILED MEDICAL TEST REPORT (EXACT REPLICATION OF PDF REPORT LAYOUT) */}
-      <div className="w-full max-w-4xl bg-white shadow-2xl rounded-sm border border-slate-300 p-4 sm:p-7 relative print:shadow-none print:border-none print:p-0 print-page-2">
-        <div className="border border-[#212529] p-3 sm:p-5 print:p-2 rounded-sm space-y-3 print:space-y-1 bg-white">
+      <div className="w-full max-w-4xl bg-white shadow-xl sm:shadow-2xl rounded-2xl sm:rounded-sm border border-slate-300 p-2.5 sm:p-7 relative print:shadow-none print:border-none print:p-0 print-page-2">
+        <div className="border border-[#212529] p-2.5 sm:p-5 print:p-2 rounded-xl sm:rounded-sm space-y-3 print:space-y-1 bg-white">
           
           {/* 1. TOP HEADER BANNER (DYNAMIC CLINICAL BANNER) */}
           <div className="w-full">
@@ -1042,23 +1045,25 @@ export default function PublicVerificationPage() {
       </div>
 
       {/* 5. BOTTOM FLOATING ACTION BAR (HIDDEN IN PRINT) */}
-      <div className="w-full max-w-4xl mt-6 p-3.5 sm:p-4 bg-white rounded-xl shadow-md border border-slate-300 flex items-center justify-between gap-3 print:hidden">
+      <div className="w-full max-w-4xl mt-4 sm:mt-6 p-3 sm:p-4 bg-white rounded-2xl shadow-md border border-slate-300 flex items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-2 text-xs text-slate-600 min-w-0">
           <FileCheck2 className="h-4 w-4 text-teal-600 flex-shrink-0" />
-          <span className="truncate">Combined Document: <strong className="hidden sm:inline">Page 1 Certificate + Page 2 Clinical Report</strong><strong className="sm:hidden">2-Page Set</strong></span>
+          <span className="truncate text-[11px] sm:text-xs">
+            Combined Document: <strong className="hidden sm:inline">Page 1 Certificate + Page 2 Clinical Report</strong><strong className="sm:hidden">2-Page Set</strong>
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <Button
-            variant="outline"
             size="sm"
             onClick={handleDownloadCombinedPdf}
-            className="gap-1.5 text-xs h-8 px-2.5 sm:px-3 text-slate-800"
+            className="bg-teal-700 hover:bg-teal-800 text-white text-xs h-8 px-2.5 sm:px-3 gap-1.5 rounded-xl shadow-xs"
             title="Download Combined 2-Page PDF"
             aria-label="Download Combined 2-Page PDF"
           >
             <Download className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Download Combined 2-Page PDF</span>
+            <span className="sm:hidden font-semibold">Download PDF</span>
           </Button>
         </div>
       </div>
