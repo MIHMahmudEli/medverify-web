@@ -25,6 +25,8 @@ import {
   Building2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { CandidateCombobox } from '@/components/ui/candidate-combobox';
+import { OrganizationCombobox } from '@/components/ui/organization-combobox';
 
 interface ReportFormProps {
   initialReport?: any;
@@ -264,27 +266,25 @@ export function ReportForm({
               Candidate Selection <span className="text-rose-500">*</span>
             </label>
             {isEdit || preselectedPatientId ? (
-              <div className="h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-900">
-                <span className="uppercase">
+              <div className="min-h-[44px] px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-900 shadow-2xs">
+                <span className="uppercase font-bold">
                   {initialReport?.patient?.fullName || selectedPatient?.fullName || 'Selected Candidate'}
                 </span>
-                <span className="font-mono text-slate-500 text-[11px]">
+                <span className="font-mono text-slate-600 bg-slate-200/80 px-2 py-0.5 rounded text-[11px]">
                   {initialReport?.patient?.passportNumber || selectedPatient?.passportNumber}
                 </span>
               </div>
             ) : (
-              <select
-                value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
-              >
-                <option value="">-- Choose Candidate --</option>
-                {patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.fullName} ({p.passportNumber}) — {p.country}
-                  </option>
-                ))}
-              </select>
+              <CandidateCombobox
+                candidates={patients}
+                selectedId={selectedPatientId}
+                onSelect={(id) => {
+                  setSelectedPatientId(id);
+                  if (error) setError(null);
+                }}
+                error={error && !selectedPatientId ? error : undefined}
+                placeholder="Search candidate by name, passport..."
+              />
             )}
           </div>
 
@@ -297,26 +297,12 @@ export function ReportForm({
                 </span>
               )}
             </label>
-            <select
-              value={selectedOrganizationId}
-              onChange={(e) => setSelectedOrganizationId(e.target.value)}
-              className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
-            >
-              {organizations.length === 0 ? (
-                <option value="">Default Medical Center</option>
-              ) : (
-                organizations.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.orgName} ({org.orgCode}) {org.isDefault ? '— [Default Primary]' : ''}
-                  </option>
-                ))
-              )}
-            </select>
-            {selectedOrg && (
-              <p className="text-[10px] text-slate-500 truncate">
-                Prefix: <strong className="font-mono text-slate-700">{selectedOrg.orgCode}</strong> • {selectedOrg.reportHeaderTitle || selectedOrg.orgName}
-              </p>
-            )}
+            <OrganizationCombobox
+              organizations={organizations}
+              selectedId={selectedOrganizationId}
+              onSelect={(id) => setSelectedOrganizationId(id)}
+              placeholder="Select issuing facility..."
+            />
           </div>
 
           <div className="space-y-1.5">
