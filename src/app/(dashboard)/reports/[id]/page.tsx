@@ -15,6 +15,14 @@ import { PageHeader } from '@/components/ui/page-header';
 import { ErrorState } from '@/components/ui/error-state';
 import { ModalPortal } from '@/components/ui/modal-portal';
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
   Table,
   TableHeader,
   TableBody,
@@ -43,6 +51,8 @@ import {
   Building,
   RotateCcw,
   Trash2,
+  MoreVertical,
+  Award,
 } from 'lucide-react';
 
 export default function ReportDetailPage() {
@@ -289,31 +299,37 @@ export default function ReportDetailPage() {
       )}
       {/* Top Header Card */}
       <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Left: Back button + Details */}
-          <div className="flex flex-col sm:flex-row items-center gap-3.5 min-w-0 w-full sm:w-auto text-center sm:text-left">
-            <Link href="/reports" aria-label="Back to reports" className="self-start sm:self-center">
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+            <Link href="/reports" aria-label="Back to reports" className="flex-shrink-0 mt-0.5 sm:mt-0">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 w-9 p-0 rounded-xl text-slate-600 hover:text-slate-900 border-slate-200 hover:border-slate-300 shadow-2xs transition-all hover:bg-slate-50 flex-shrink-0"
+                className="h-9 w-9 p-0 rounded-xl text-slate-600 hover:text-slate-900 border-slate-200 hover:border-slate-300 shadow-2xs transition-all hover:bg-slate-50"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
 
-            <div className="space-y-1.5 min-w-0 w-full sm:w-auto">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-mono">
-                  Report {report.registrationNumber}
+                  {report.registrationNumber}
                 </h1>
                 {getStatusBadge()}
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
                   Rev #{report.currentRevisionNumber}
                 </span>
+                {certificate && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 whitespace-nowrap">
+                    <ShieldCheck className="h-3 w-3 text-teal-600" />
+                    <span>{certificate.certificateNumber}</span>
+                  </span>
+                )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-1 text-xs text-slate-500">
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
                 <span className="truncate">Candidate: <strong className="text-slate-900 uppercase font-semibold">{p?.fullName || '—'}</strong></span>
                 <span className="text-slate-300 hidden sm:inline">•</span>
                 <span className="whitespace-nowrap">Passport: <strong className="text-slate-800 font-mono font-semibold">{p?.passportNumber || '—'}</strong></span>
@@ -323,35 +339,37 @@ export default function ReportDetailPage() {
             </div>
           </div>
 
-          {/* Right: Actions Toolbar - Centered and evenly distributed on mobile, icon-only on mobile */}
-          <div className="flex items-center justify-evenly sm:justify-end gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-            {report.status === 'DRAFT' && (
-              <>
-                <Link href={`/reports/${report.id}/edit`} className="flex-shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-slate-200 text-xs font-semibold whitespace-nowrap"
-                    title="Edit Draft"
-                    aria-label="Edit Draft"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="hidden sm:inline">Edit Draft</span>
-                  </Button>
-                </Link>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={actionLoading}
-                  onClick={handleSubmitForReview}
-                  className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex-shrink-0"
-                  title="Submit for Review"
-                  aria-label="Submit for Review"
-                >
-                  <Send className="h-4 w-4" />
-                  <span className="hidden sm:inline">Submit for Review</span>
-                </Button>
-              </>
+          {/* Right: Actions Toolbar - Clean clinical hierarchy & responsive dropdown */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-start lg:justify-end pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+            {/* 1. Preview & Print Button (Always accessible) */}
+            <Link href={`/reports/${report.id}/preview`} className="flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs whitespace-nowrap"
+                title="Preview & Print Report"
+              >
+                <Printer className="h-4 w-4 text-teal-600" />
+                <span>Preview & Print</span>
+              </Button>
+            </Link>
+
+            {/* 2. Primary / Contextual Action */}
+            {canApprove && report.status === 'FINALIZED' && !certificate && (
+              <Button
+                variant="clinical"
+                size="sm"
+                disabled={actionLoading}
+                onClick={() => {
+                  setIssueCertError(null);
+                  setShowIssueCertModal(true);
+                }}
+                className="h-9 px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                title="Issue Official Medical Certificate"
+              >
+                <Award className="h-4 w-4" />
+                <span>Issue Certificate</span>
+              </Button>
             )}
 
             {canApprove && report.status !== 'FINALIZED' && report.status !== 'REVOKED' && (
@@ -363,111 +381,144 @@ export default function ReportDetailPage() {
                   setFinalizeError(null);
                   setShowFinalizeModal(true);
                 }}
-                className="h-9 px-2.5 sm:px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                className="h-9 px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
                 title="Finalize & Sign Off"
-                aria-label="Finalize & Sign Off"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Finalize & Sign Off</span>
+                <span>Finalize & Sign Off</span>
               </Button>
             )}
 
-            {canApprove && report.status === 'FINALIZED' && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={actionLoading}
-                onClick={() => {
-                  setAmendError(null);
-                  setShowAmendModal(true);
-                }}
-                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-amber-300 text-amber-800 bg-amber-50/70 hover:bg-amber-100 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
-                title="Amend Report"
-                aria-label="Amend Report"
-              >
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <span className="hidden sm:inline">Amend Report</span>
-              </Button>
-            )}
-
-            {canRevoke && report.status === 'FINALIZED' && (
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={actionLoading}
-                onClick={() => {
-                  setRevokeError(null);
-                  setShowRevokeModal(true);
-                }}
-                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
-                title="Revoke Report"
-                aria-label="Revoke Report"
-              >
-                <XCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Revoke</span>
-              </Button>
-            )}
-
-            {canApprove && report.status === 'FINALIZED' && !certificate && (
+            {/* For finalized reports with certificate, Download PDF is the prominent primary button */}
+            {report.status === 'FINALIZED' && certificate && (
               <Button
                 variant="default"
                 size="sm"
-                disabled={actionLoading}
-                onClick={() => {
-                  setIssueCertError(null);
-                  setShowIssueCertModal(true);
-                }}
-                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-2xs whitespace-nowrap flex-shrink-0"
-                title="Issue Certificate"
-                aria-label="Issue Certificate"
+                onClick={handleDownloadPdf}
+                className="h-9 px-3.5 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs whitespace-nowrap flex-shrink-0"
+                title="Download Combined 2-Page PDF"
               >
-                <CheckCircle2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Issue Certificate</span>
+                <FileDown className="h-4 w-4 text-teal-400" />
+                <span>Download PDF</span>
               </Button>
             )}
 
-            <Link href={`/reports/${report.id}/preview`} className="flex-shrink-0">
+            {/* If report is DRAFT and user cannot finalize, show Submit for Review */}
+            {!canApprove && report.status === 'DRAFT' && (
               <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-semibold shadow-2xs text-xs whitespace-nowrap"
-                title="Preview & Print"
-                aria-label="Preview & Print"
-              >
-                <Printer className="h-4 w-4 text-teal-600" />
-                <span className="hidden sm:inline">Preview & Print</span>
-              </Button>
-            </Link>
-
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleDownloadPdf}
-              className="h-9 px-2.5 sm:px-3.5 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs whitespace-nowrap flex-shrink-0"
-              title="Download Combined 2-Page PDF"
-              aria-label="Download Combined 2-Page PDF"
-            >
-              <FileDown className="h-4 w-4 text-teal-400" />
-              <span className="hidden sm:inline">Download 2-Page PDF</span>
-            </Button>
-
-            {user?.role === 'SUPER_ADMIN' && (
-              <Button
-                variant="outline"
+                variant="clinical"
                 size="sm"
                 disabled={actionLoading}
-                onClick={() => {
-                  setDeleteError(null);
-                  setShowDeleteModal(true);
-                }}
-                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl border-rose-200 text-rose-700 bg-rose-50/70 hover:bg-rose-100 hover:border-rose-300 font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
-                title="Delete Medical Report"
-                aria-label="Delete Medical Report"
+                onClick={handleSubmitForReview}
+                className="h-9 px-3.5 gap-1.5 rounded-xl font-semibold shadow-2xs text-xs whitespace-nowrap flex-shrink-0"
+                title="Submit for Review"
               >
-                <Trash2 className="h-4 w-4 text-rose-600" />
-                <span className="hidden sm:inline">Delete</span>
+                <Send className="h-4 w-4" />
+                <span>Submit for Review</span>
               </Button>
             )}
+
+            {/* If report is REVOKED or finalized without certificate, still allow downloading PDF */}
+            {((report.status === 'REVOKED') || (report.status === 'FINALIZED' && !certificate)) && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleDownloadPdf}
+                className="h-9 px-3 gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-2xs font-semibold text-xs whitespace-nowrap flex-shrink-0"
+                title="Download 2-Page PDF"
+              >
+                <FileDown className="h-4 w-4 text-teal-400" />
+                <span className="hidden sm:inline">Download PDF</span>
+              </Button>
+            )}
+
+            {/* 3. "More Actions" Dropdown Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-9 p-0 rounded-xl border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 shadow-2xs flex-shrink-0"
+                  title="More actions"
+                  aria-label="More actions"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-xl rounded-2xl border border-slate-200/90 bg-white">
+                <DropdownMenuLabel>Report Actions</DropdownMenuLabel>
+
+                {report.status === 'DRAFT' && (
+                  <DropdownMenuItem onClick={() => router.push(`/reports/${report.id}/edit`)}>
+                    <Edit className="h-3.5 w-3.5 mr-2 text-slate-600" />
+                    <span>Edit Examination Data</span>
+                  </DropdownMenuItem>
+                )}
+
+                {canApprove && report.status === 'DRAFT' && (
+                  <DropdownMenuItem onClick={handleSubmitForReview} disabled={actionLoading}>
+                    <Send className="h-3.5 w-3.5 mr-2 text-slate-600" />
+                    <span>Submit for Review</span>
+                  </DropdownMenuItem>
+                )}
+
+                {canApprove && report.status === 'FINALIZED' && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setAmendError(null);
+                      setShowAmendModal(true);
+                    }}
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5 mr-2 text-amber-600" />
+                    <span>Amend Clinical Report</span>
+                  </DropdownMenuItem>
+                )}
+
+                {(certificate?.verificationToken || activeToken?.token) && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const tok = certificate?.verificationToken || activeToken?.token;
+                      window.open(`/verify/${tok}`, '_blank');
+                    }}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 mr-2 text-teal-600" />
+                    <span>Public Verification Page</span>
+                  </DropdownMenuItem>
+                )}
+
+                {canRevoke && report.status === 'FINALIZED' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => {
+                        setRevokeError(null);
+                        setShowRevokeModal(true);
+                      }}
+                    >
+                      <XCircle className="h-3.5 w-3.5 mr-2 text-rose-600" />
+                      <span>Revoke Report & Certificate</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                {user?.role === 'SUPER_ADMIN' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => {
+                        setDeleteError(null);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-2 text-rose-600" />
+                      <span>Permanently Delete</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
