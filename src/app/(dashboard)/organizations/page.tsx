@@ -59,19 +59,6 @@ export default function OrganizationsPage() {
     fetchOrganizations();
   }, []);
 
-  const handleSetDefault = async (org: any) => {
-    if (org.isDefault) return;
-    setActionLoading(org.id);
-    try {
-      await api.post(`/organizations/${org.id}/set-default`, {});
-      await fetchOrganizations();
-    } catch (err: any) {
-      alert(err.message || 'Failed to set organization as default');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const handleDelete = async () => {
     if (!orgToDelete) return;
     setDeleteError(null);
@@ -194,12 +181,7 @@ export default function OrganizationsPage() {
             return (
               <Card
                 key={org.id}
-                className={cn(
-                  'relative rounded-2xl border transition-all duration-200 shadow-2xs hover:shadow-card hover:border-slate-300 flex flex-col justify-between overflow-hidden bg-white group',
-                  org.isDefault
-                    ? 'border-emerald-300/90 bg-gradient-to-b from-emerald-50/25 via-white to-white ring-1 ring-emerald-500/20'
-                    : 'border-slate-200/90'
-                )}
+                className="relative rounded-2xl border border-slate-200/90 transition-all duration-200 shadow-2xs hover:shadow-card hover:border-slate-300 flex flex-col justify-between overflow-hidden bg-white group"
               >
                 <div>
                   <div className="p-4 pb-3">
@@ -225,12 +207,6 @@ export default function OrganizationsPage() {
                             <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 uppercase">
                               {org.orgCode}
                             </span>
-                            {org.isDefault && (
-                              <span className="inline-flex items-center gap-0.5 text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
-                                <Star className="h-2.5 w-2.5 fill-emerald-600 text-emerald-600" />
-                                Default
-                              </span>
-                            )}
                             <span
                               className={cn(
                                 'text-[9.5px] font-semibold px-1.5 py-0.2 rounded-full',
@@ -284,28 +260,10 @@ export default function OrganizationsPage() {
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 p-2.5 px-4 mt-2 gap-2">
-                  <div>
-                    {!org.isDefault ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2.5 text-[11px] text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200 rounded-lg gap-1"
-                        onClick={() => handleSetDefault(org)}
-                        disabled={isProcessing}
-                      >
-                        {isProcessing ? (
-                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                        ) : (
-                          <Star className="h-3 w-3 mr-0.5" />
-                        )}
-                        Set Default
-                      </Button>
-                    ) : (
-                      <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                        Primary Center
-                      </span>
-                    )}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      ID: <span className="font-mono text-[10px] text-slate-700">{org.orgCode}</span>
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
@@ -316,21 +274,19 @@ export default function OrganizationsPage() {
                       </Button>
                     </Link>
 
-                    {!org.isDefault && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
-                        onClick={() => {
-                          setDeleteError(null);
-                          setOrgToDelete(org);
-                        }}
-                        disabled={isProcessing}
-                        title="Delete organization"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
+                      onClick={() => {
+                        setDeleteError(null);
+                        setOrgToDelete(org);
+                      }}
+                      disabled={isProcessing}
+                      title="Delete organization"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               </Card>

@@ -161,12 +161,6 @@ export function ReportForm({
         setTemplate(tplRes);
         const orgs = Array.isArray(orgRes) ? orgRes : [];
         setOrganizations(orgs);
-        if (!initialReport?.organizationId && orgs.length > 0) {
-          const defaultOrg = orgs.find((o: any) => o.isDefault) || orgs[0];
-          if (defaultOrg) {
-            setSelectedOrganizationId(defaultOrg.id);
-          }
-        }
       } catch (err) {
         console.error(err);
       }
@@ -404,13 +398,8 @@ export function ReportForm({
           </div>
 
           <div className="space-y-1.5 relative z-30">
-            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               <span>Issuing Center / Organization</span>
-              {selectedOrg?.isDefault && (
-                <span className="text-[10px] text-emerald-600 font-bold tracking-normal">
-                  (Default)
-                </span>
-              )}
             </label>
             <OrganizationCombobox
               id="field-organization"

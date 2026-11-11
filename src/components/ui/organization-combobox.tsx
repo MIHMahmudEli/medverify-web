@@ -301,12 +301,6 @@ export function OrganizationCombobox({
                           <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 uppercase">
                             {org.orgCode}
                           </span>
-                          {org.isDefault && (
-                            <span className="inline-flex items-center gap-0.5 text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full">
-                              <Star className="h-2.5 w-2.5 fill-emerald-600 text-emerald-600" />
-                              Default
-                            </span>
-                          )}
                         </div>
                         {org.orgAddress && (
                           <p className="text-[10px] text-slate-500 truncate mt-0.5 flex items-center gap-1">

@@ -592,24 +592,9 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                 </div>
               </div>
 
-              {/* Default & Active Switches */}
-              <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/40 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isDefault}
-                    onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-                    className="h-4 w-4 rounded text-teal-600 focus:ring-teal-500 mt-0.5"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 block">Default Primary Facility</span>
-                    <span className="text-[11px] text-slate-500">
-                      Auto-selected for new candidates and reports.
-                    </span>
-                  </div>
-                </label>
-
-                <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/40 cursor-pointer">
+              {/* Active Switch */}
+              <div className="pt-3 border-t border-slate-100">
+                <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/40 cursor-pointer max-w-md">
                   <input
                     type="checkbox"
                     checked={formData.isActive}
