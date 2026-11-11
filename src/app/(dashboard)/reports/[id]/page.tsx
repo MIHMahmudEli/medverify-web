@@ -335,6 +335,16 @@ export default function ReportDetailPage() {
                 <span className="whitespace-nowrap">Passport: <strong className="text-slate-800 font-mono font-semibold">{p?.passportNumber || '—'}</strong></span>
                 <span className="text-slate-300 hidden sm:inline">•</span>
                 <span className="whitespace-nowrap">Exam Date: <strong className="text-slate-800 font-semibold">{formatDate(report.registeredAt)}</strong></span>
+                {report.organization && (
+                  <>
+                    <span className="text-slate-300 hidden sm:inline">•</span>
+                    <span className="inline-flex items-center gap-1 text-slate-700 font-medium">
+                      <Building className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{report.organization.orgName}</span>
+                      <span className="font-mono text-[10px] text-slate-500">({report.organization.orgCode})</span>
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>

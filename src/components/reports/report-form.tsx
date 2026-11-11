@@ -22,6 +22,7 @@ import {
   Stethoscope,
   TestTube2,
   Radiation,
+  Building2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -41,6 +42,10 @@ export function ReportForm({
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState(
     initialReport?.patientId || preselectedPatientId || '',
+  );
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>(
+    initialReport?.organizationId || '',
   );
   const [template, setTemplate] = useState<any>(null);
   const [registeredAt, setRegisteredAt] = useState(
@@ -143,12 +148,21 @@ export function ReportForm({
   useEffect(() => {
     async function loadData() {
       try {
-        const [patRes, tplRes] = await Promise.all([
+        const [patRes, tplRes, orgRes] = await Promise.all([
           api.get<any>('/patients', { limit: 100 }),
           api.get<any>('/templates/active'),
+          api.get<any>('/organizations').catch(() => []),
         ]);
         setPatients(patRes.data || []);
         setTemplate(tplRes);
+        const orgs = Array.isArray(orgRes) ? orgRes : [];
+        setOrganizations(orgs);
+        if (!initialReport?.organizationId && orgs.length > 0) {
+          const defaultOrg = orgs.find((o: any) => o.isDefault) || orgs[0];
+          if (defaultOrg) {
+            setSelectedOrganizationId(defaultOrg.id);
+          }
+        }
       } catch (err) {
         console.error(err);
       }
@@ -176,6 +190,7 @@ export function ReportForm({
       if (!isEdit) {
         const payload = {
           patientId: selectedPatientId,
+          organizationId: selectedOrganizationId || undefined,
           templateVersionId: template?.activeVersion?.id,
           registeredAt,
           reportData,
@@ -187,6 +202,7 @@ export function ReportForm({
         reportId = created.id;
       } else {
         const payload = {
+          organizationId: selectedOrganizationId || undefined,
           registeredAt,
           reportData,
           xrayFinding,
@@ -209,6 +225,7 @@ export function ReportForm({
   };
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId);
+  const selectedOrg = organizations.find((o) => o.id === selectedOrganizationId);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto animate-fadeIn">
@@ -230,18 +247,18 @@ export function ReportForm({
         </div>
       )}
 
-      {/* 1. Candidate Selection & Date Header */}
+      {/* 1. Candidate Selection, Issuing Organization & Date Header */}
       <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
         <CardHeader className="py-3.5 px-4 sm:px-6 bg-slate-50/60 border-b border-slate-100">
           <CardTitle className="text-sm font-bold text-slate-900">
-            Candidate & Examination Date
+            Candidate, Clinical Organization & Examination Date
           </CardTitle>
           <CardDescription className="text-xs text-slate-500">
-            Link this medical report to an authenticated candidate profile.
+            Link this medical report to an authenticated candidate profile and assign the issuing clinical diagnostic facility.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <CardContent className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               Candidate Selection <span className="text-rose-500">*</span>
@@ -268,6 +285,37 @@ export function ReportForm({
                   </option>
                 ))}
               </select>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block flex items-center justify-between">
+              <span>Issuing Center / Organization</span>
+              {selectedOrg?.isDefault && (
+                <span className="text-[10px] text-emerald-600 font-bold tracking-normal">
+                  (Default)
+                </span>
+              )}
+            </label>
+            <select
+              value={selectedOrganizationId}
+              onChange={(e) => setSelectedOrganizationId(e.target.value)}
+              className="w-full h-10 px-3 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
+            >
+              {organizations.length === 0 ? (
+                <option value="">Default Medical Center</option>
+              ) : (
+                organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.orgName} ({org.orgCode}) {org.isDefault ? '— [Default Primary]' : ''}
+                  </option>
+                ))
+              )}
+            </select>
+            {selectedOrg && (
+              <p className="text-[10px] text-slate-500 truncate">
+                Prefix: <strong className="font-mono text-slate-700">{selectedOrg.orgCode}</strong> • {selectedOrg.reportHeaderTitle || selectedOrg.orgName}
+              </p>
             )}
           </div>
 

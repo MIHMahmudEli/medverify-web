@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,17 +152,29 @@ export default function SettingsPage() {
       {/* Page Header */}
       <PageHeader
         title="Organization & Governance Settings"
-        description="Branding, clinical certificate parameters, authorized signatories, and public verification privacy rules."
+        description="Default clinical facility branding, certificate parameters, authorized signatories, and public verification privacy rules."
         actions={
-          <Button
-            type="button"
-            disabled={saving || loading}
-            onClick={handleSubmit}
-            className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs active:scale-95 transition-all"
-          >
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            <span>Save All Settings</span>
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link href="/organizations">
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-1.5 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold shadow-2xs"
+              >
+                <Building2 className="h-3.5 w-3.5 text-teal-600" />
+                <span>Manage Facilities & Centers</span>
+              </Button>
+            </Link>
+            <Button
+              type="button"
+              disabled={saving || loading}
+              onClick={handleSubmit}
+              className="gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs active:scale-95 transition-all"
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              <span>Save Default Settings</span>
+            </Button>
+          </div>
         }
       />
 

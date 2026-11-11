@@ -17,6 +17,7 @@ import {
   Stethoscope,
   X,
   KeyRound,
+  Building2,
 } from 'lucide-react';
 import { ChangePasswordModal } from '@/components/ui/change-password-modal';
 
@@ -73,6 +74,12 @@ const navGroups: NavGroup[] = [
         label: 'Audit Logs',
         href: '/audit-logs',
         icon: History,
+        roles: ['SUPER_ADMIN', 'ADMIN'],
+      },
+      {
+        label: 'Organizations',
+        href: '/organizations',
+        icon: Building2,
         roles: ['SUPER_ADMIN', 'ADMIN'],
       },
       {
