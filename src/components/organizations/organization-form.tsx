@@ -20,6 +20,7 @@ import {
   Trash2,
   Image as ImageIcon,
   ArrowLeft,
+  Stethoscope,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DynamicHeaderBanner } from '@/components/ui/dynamic-header-banner';
@@ -232,6 +233,30 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
       {/* TAB 1: PROFILE & BRANDING */}
       {activeTab === 'PROFILE' && (
         <div className="space-y-6">
+          {/* Live Dynamic Letterhead Banner Preview (At Top) */}
+          <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
+            <CardHeader className="p-4 bg-gradient-to-r from-slate-50 via-teal-50/30 to-sky-50/20 border-b border-slate-100 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Stethoscope className="h-4 w-4 text-teal-600" />
+                  Live Dynamic Letterhead Banner Preview
+                </CardTitle>
+                <CardDescription className="text-[11px] text-slate-500 mt-0.5">
+                  Exact vector emblem, typography layout, and logo rendered on candidate medical PDFs and verification portals.
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-800 border-teal-200">Real-Time Preview</Badge>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 bg-slate-100/60 flex flex-col items-center gap-2.5">
+              <div className="w-full max-w-4xl bg-white p-3 sm:p-4 rounded-xl shadow-xs border border-slate-200 overflow-x-auto no-scrollbar">
+                <DynamicHeaderBanner settings={formData} />
+              </div>
+              <p className="text-[11px] text-slate-500 text-center sm:text-left w-full max-w-4xl">
+                This dynamic banner is generated on-the-fly. Any changes to the facility name, address, contact info, or logo below update immediately in this preview.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
             <CardHeader className="p-5 border-b border-slate-100">
               <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -420,25 +445,6 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
             </CardContent>
           </Card>
 
-          {/* Live Letterhead Preview */}
-          <Card className="bg-white border-slate-200/90 shadow-2xs rounded-2xl overflow-hidden">
-            <CardHeader className="p-4 bg-slate-50/60 border-b border-slate-100 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Live Dynamic Letterhead Banner Preview
-                </CardTitle>
-                <CardDescription className="text-[11px] text-slate-500">
-                  Exact vector emblem and typography layout rendered on candidate PDFs.
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="text-[10px] bg-teal-50 text-teal-800 border-teal-200">Real-Time Preview</Badge>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 bg-slate-100/60 flex justify-center">
-              <div className="w-full max-w-3xl bg-white p-3 rounded-xl shadow-xs border border-slate-200">
-                <DynamicHeaderBanner settings={formData} />
-              </div>
-            </CardContent>
-          </Card>
         </div>
       )}
 
