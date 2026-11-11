@@ -84,18 +84,119 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
   const [uploadingSignature, setUploadingSignature] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.orgName.trim()) {
-      setError('Organization name is required.');
+  const updateField = (key: string, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [key]: value }));
+    if (fieldErrors[key]) {
+      setFieldErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[key];
+        return copy;
+      });
+      if (error) setError(null);
+    }
+  };
+
+  const validateForm = (): {
+    errors: Record<string, string>;
+    firstError: { id: string; tab: 'PROFILE' | 'CERTIFICATE' | 'DISCLOSURE'; label: string } | null;
+  } => {
+    const errors: Record<string, string> = {};
+    let firstError: { id: string; tab: 'PROFILE' | 'CERTIFICATE' | 'DISCLOSURE'; label: string } | null = null;
+
+    const addErr = (id: string, tab: 'PROFILE' | 'CERTIFICATE' | 'DISCLOSURE', label: string, msg: string) => {
+      errors[id] = msg;
+      if (!firstError) {
+        firstError = { id, tab, label };
+      }
+    };
+
+    // Tab 1: Profile & Letterhead
+    if (!formData.orgName?.trim()) {
+      addErr('orgName', 'PROFILE', 'Organization Legal Name', 'Organization / Clinic legal name is required.');
+    }
+
+    if (!formData.orgCode?.trim()) {
+      addErr('orgCode', 'PROFILE', 'Facility Code / Prefix', 'Facility prefix code is required (e.g. MMS or ISDIC).');
+    } else if (!/^[A-Za-z0-9_-]{2,10}$/.test(formData.orgCode.trim())) {
+      addErr('orgCode', 'PROFILE', 'Facility Code / Prefix', 'Code prefix must be 2 to 10 letters or numbers.');
+    }
+
+    if (!formData.orgAddress?.trim()) {
+      addErr('orgAddress', 'PROFILE', 'Address Line 1', 'Diagnostic center address description is required.');
+    }
+
+    if (formData.orgEmail?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.orgEmail.trim())) {
+      addErr('orgEmail', 'PROFILE', 'Official Support Email', 'Please provide a valid email address.');
+    }
+
+    // Tab 2: Certificate & Signatory
+    if (!formData.certificateTitle?.trim()) {
+      addErr('certificateTitle', 'CERTIFICATE', 'Certificate Header Title', 'Certificate header title is required.');
+    }
+
+    if (!formData.certificateNumberPrefix?.trim()) {
+      addErr('certificateNumberPrefix', 'CERTIFICATE', 'Certificate Number Prefix', 'Certificate prefix is required (e.g. MC).');
+    }
+
+    if (!formData.signatoryName?.trim()) {
+      addErr('signatoryName', 'CERTIFICATE', 'Authorized Signatory Doctor', 'Doctor / Signatory physician name is required.');
+    }
+
+    if (!formData.signatoryDesignation?.trim()) {
+      addErr('signatoryDesignation', 'CERTIFICATE', 'Signatory Medical Designation', 'Signatory medical designation is required.');
+    }
+
+    if (!formData.signatoryLicenseNumber?.trim()) {
+      addErr('signatoryLicenseNumber', 'CERTIFICATE', 'Doctor Registration / License No', 'Medical registration / BMDC license number is required.');
+    }
+
+    return { errors, firstError };
+  };
+
+  const tabHasError = (tabId: string) => {
+    if (tabId === 'PROFILE') {
+      return Boolean(fieldErrors.orgName || fieldErrors.orgCode || fieldErrors.orgAddress || fieldErrors.orgEmail);
+    }
+    if (tabId === 'CERTIFICATE') {
+      return Boolean(
+        fieldErrors.certificateTitle ||
+        fieldErrors.certificateNumberPrefix ||
+        fieldErrors.signatoryName ||
+        fieldErrors.signatoryDesignation ||
+        fieldErrors.signatoryLicenseNumber
+      );
+    }
+    return false;
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    const { errors, firstError } = validateForm();
+    if (firstError) {
+      setFieldErrors(errors);
+      setError(`Please complete required field: "${firstError.label}". ${errors[firstError.id]}`);
+
+      // Switch to the tab containing the field if needed
+      if (activeTab !== firstError.tab) {
+        setActiveTab(firstError.tab);
+      }
+
+      // Immediately redirect and focus the missing input field
+      setTimeout(() => {
+        const el = document.getElementById(`field-${firstError.id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
+      }, 120);
+
       return;
     }
-    if (!formData.orgCode.trim()) {
-      setError('Organization code / prefix is required.');
-      return;
-    }
 
+    setFieldErrors({});
     setError(null);
     setSaved(false);
     setSaving(true);
@@ -200,9 +301,20 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
       )}
 
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5 animate-fadeInFast shadow-2xs">
-          <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-          <span>{error}</span>
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center justify-between gap-2.5 animate-fadeInFast shadow-2xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+            <span className="font-semibold leading-snug">{error}</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setError(null)}
+            className="h-7 px-2.5 text-[11px] border-rose-200 text-rose-800 hover:bg-rose-100 rounded-lg flex-shrink-0"
+          >
+            Dismiss
+          </Button>
         </div>
       )}
 
@@ -211,20 +323,26 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeTab === tab.id;
+          const hasError = tabHasError(tab.id);
+
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                'px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 shadow-2xs active:scale-95',
+                'px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 shadow-2xs active:scale-95 relative',
                 isSelected
                   ? 'bg-teal-600 text-white shadow-xs'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900',
+                hasError && !isSelected && 'border-rose-300 text-rose-700 bg-rose-50/40',
               )}
             >
               <Icon className="h-3.5 w-3.5" />
               <span>{tab.label}</span>
+              {hasError && (
+                <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse ml-0.5" />
+              )}
             </button>
           );
         })}
@@ -275,11 +393,21 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                     Organization / Clinic Legal Name <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-orgName"
                     value={formData.orgName}
-                    onChange={(e) => setFormData({ ...formData, orgName: e.target.value })}
+                    onChange={(e) => updateField('orgName', e.target.value)}
                     placeholder="e.g. MYSA Medical Center"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.orgName && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.orgName && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.orgName}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -287,26 +415,47 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                     Facility Code / Prefix <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-orgCode"
                     value={formData.orgCode}
-                    onChange={(e) => setFormData({ ...formData, orgCode: e.target.value.toUpperCase() })}
+                    onChange={(e) => updateField('orgCode', e.target.value.toUpperCase())}
                     placeholder="e.g. MMS or ISDIC"
-                    className="h-10 text-xs font-mono font-bold uppercase rounded-xl"
+                    className={cn(
+                      'h-10 text-xs font-mono font-bold uppercase rounded-xl transition-all',
+                      fieldErrors.orgCode && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
-                  <p className="text-[10px] text-slate-400">Used as the prefix in candidate registration IDs.</p>
+                  {fieldErrors.orgCode ? (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.orgCode}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-slate-400">Used as the prefix in candidate registration IDs.</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Address Line 1 (Center Description)
+                    Address Line 1 (Center Description) <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-orgAddress"
                     value={formData.orgAddress}
-                    onChange={(e) => setFormData({ ...formData, orgAddress: e.target.value })}
+                    onChange={(e) => updateField('orgAddress', e.target.value)}
                     placeholder="Diagnostic & Medical Checkup Centre for Overseas Employment"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.orgAddress && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.orgAddress && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.orgAddress}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -314,8 +463,9 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                     Address Line 2 (Street / City)
                   </label>
                   <Input
+                    id="field-orgAddressLine2"
                     value={formData.orgAddressLine2}
-                    onChange={(e) => setFormData({ ...formData, orgAddressLine2: e.target.value })}
+                    onChange={(e) => updateField('orgAddressLine2', e.target.value)}
                     placeholder="e.g. House 42, Road 11, Dhanmondi, Dhaka"
                     className="h-10 text-xs rounded-xl"
                   />
@@ -328,8 +478,9 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                     Official Contact Phone
                   </label>
                   <Input
+                    id="field-orgPhone"
                     value={formData.orgPhone}
-                    onChange={(e) => setFormData({ ...formData, orgPhone: e.target.value })}
+                    onChange={(e) => updateField('orgPhone', e.target.value)}
                     placeholder="+880 1700-000000"
                     className="h-10 text-xs rounded-xl"
                   />
@@ -340,11 +491,21 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
                     Official Support Email
                   </label>
                   <Input
+                    id="field-orgEmail"
                     value={formData.orgEmail}
-                    onChange={(e) => setFormData({ ...formData, orgEmail: e.target.value })}
+                    onChange={(e) => updateField('orgEmail', e.target.value)}
                     placeholder="info@mysamedicalbd.com"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.orgEmail && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.orgEmail && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.orgEmail}</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -466,65 +627,116 @@ export function OrganizationForm({ initialData, isEdit = false }: OrganizationFo
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5 md:col-span-2">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Certificate Header Title
+                    Certificate Header Title <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-certificateTitle"
                     value={formData.certificateTitle}
-                    onChange={(e) => setFormData({ ...formData, certificateTitle: e.target.value })}
+                    onChange={(e) => updateField('certificateTitle', e.target.value)}
                     placeholder="MEDICAL FITNESS CERTIFICATE"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.certificateTitle && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.certificateTitle && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.certificateTitle}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Certificate Number Prefix
+                    Certificate Number Prefix <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-certificateNumberPrefix"
                     value={formData.certificateNumberPrefix}
-                    onChange={(e) => setFormData({ ...formData, certificateNumberPrefix: e.target.value.toUpperCase() })}
+                    onChange={(e) => updateField('certificateNumberPrefix', e.target.value.toUpperCase())}
                     placeholder="MC"
-                    className="h-10 text-xs font-mono font-bold uppercase rounded-xl"
+                    className={cn(
+                      'h-10 text-xs font-mono font-bold uppercase rounded-xl transition-all',
+                      fieldErrors.certificateNumberPrefix && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
-                  <p className="text-[10px] text-slate-400">e.g. MC-2026-00001</p>
+                  {fieldErrors.certificateNumberPrefix ? (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.certificateNumberPrefix}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-slate-400">e.g. MC-2026-00001</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Authorized Signatory Doctor
+                    Authorized Signatory Doctor <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-signatoryName"
                     value={formData.signatoryName}
-                    onChange={(e) => setFormData({ ...formData, signatoryName: e.target.value })}
+                    onChange={(e) => updateField('signatoryName', e.target.value)}
                     placeholder="Dr. A. K. M. Shamsuddin"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.signatoryName && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.signatoryName && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.signatoryName}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Signatory Medical Designation
+                    Signatory Medical Designation <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-signatoryDesignation"
                     value={formData.signatoryDesignation}
-                    onChange={(e) => setFormData({ ...formData, signatoryDesignation: e.target.value })}
+                    onChange={(e) => updateField('signatoryDesignation', e.target.value)}
                     placeholder="MBBS, FCPS - Medical Director"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.signatoryDesignation && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.signatoryDesignation && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.signatoryDesignation}</span>
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
-                    Doctor Registration / License No
+                    Doctor Registration / License No <span className="text-rose-500">*</span>
                   </label>
                   <Input
+                    id="field-signatoryLicenseNumber"
                     value={formData.signatoryLicenseNumber}
-                    onChange={(e) => setFormData({ ...formData, signatoryLicenseNumber: e.target.value })}
+                    onChange={(e) => updateField('signatoryLicenseNumber', e.target.value)}
                     placeholder="BMDC Reg No: A-12345"
-                    className="h-10 text-xs rounded-xl"
+                    className={cn(
+                      'h-10 text-xs rounded-xl transition-all',
+                      fieldErrors.signatoryLicenseNumber && 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20'
+                    )}
                   />
+                  {fieldErrors.signatoryLicenseNumber && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1 animate-fadeInFast">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span>{fieldErrors.signatoryLicenseNumber}</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
