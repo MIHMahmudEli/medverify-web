@@ -11,12 +11,20 @@ export default function HomePage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.push('/dashboard');
+        router.replace('/dashboard');
       } else {
-        router.push('/login');
+        router.replace('/login');
       }
     }
   }, [user, loading, router]);
+
+  // Safety fallback: Never leave the user stuck on a loading screen
+  useEffect(() => {
+    const fallback = setTimeout(() => {
+      router.replace(user ? '/dashboard' : '/login');
+    }, 2000);
+    return () => clearTimeout(fallback);
+  }, [user, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">

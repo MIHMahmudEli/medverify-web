@@ -1,7 +1,15 @@
-const defaultApi = process.env.NODE_ENV === 'production'
-  ? 'https://medverify-api-y6am.onrender.com'
-  : 'http://localhost:4000';
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || defaultApi).replace(/\/+$/, '');
+export function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocalhost) {
+      if (process.env.NEXT_PUBLIC_API_URL && (process.env.NEXT_PUBLIC_API_URL.includes('localhost') || process.env.NEXT_PUBLIC_API_URL.includes('127.0.0.1'))) {
+        return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '');
+      }
+      return 'http://localhost:4000';
+    }
+  }
+  return (process.env.NEXT_PUBLIC_API_URL || 'https://medverify-api-y6am.onrender.com').replace(/\/+$/, '');
+}
 
 export interface ApiError {
   statusCode: number;
@@ -55,7 +63,7 @@ class ApiClient {
     }
 
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = `${API_BASE}/api/v1${cleanEndpoint}`;
+    const url = `${getApiBase()}/api/v1${cleanEndpoint}`;
 
     const res = await fetch(url, {
       ...options,
@@ -137,7 +145,7 @@ class ApiClient {
     }
 
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = `${API_BASE}/api/v1${cleanEndpoint}`;
+    const url = `${getApiBase()}/api/v1${cleanEndpoint}`;
 
     const res = await fetch(url, {
       method: 'GET',
