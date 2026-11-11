@@ -188,67 +188,6 @@ export default function LoginPage() {
                 </>
               )}
             </Button>
-
-            {/* Quick Demo Credentials */}
-            <div className="pt-3 border-t border-slate-100">
-              <div className="flex items-center justify-between pb-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-                  Quick Demo Login
-                </span>
-                <span className="text-[9.5px] font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                  Click to Fill
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@medverify.com');
-                    setPassword('AdminPassword123!');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all group"
-                >
-                  <p className="text-[11px] font-bold text-slate-800 group-hover:text-teal-700">Super Admin</p>
-                  <p className="text-[9.5px] text-slate-400 font-mono">admin@medverify.com</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('doctor@medverify.com');
-                    setPassword('DoctorPassword123!');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all group"
-                >
-                  <p className="text-[11px] font-bold text-slate-800 group-hover:text-teal-700">Doctor / Signatory</p>
-                  <p className="text-[9.5px] text-slate-400 font-mono">doctor@medverify.com</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('operator@medverify.com');
-                    setPassword('OperatorPassword123!');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all group"
-                >
-                  <p className="text-[11px] font-bold text-slate-800 group-hover:text-teal-700">Report Operator</p>
-                  <p className="text-[9.5px] text-slate-400 font-mono">operator@medverify.com</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('lab@medverify.com');
-                    setPassword('LabPassword123!');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 text-left transition-all group"
-                >
-                  <p className="text-[11px] font-bold text-slate-800 group-hover:text-teal-700">Lab Technician</p>
-                  <p className="text-[9.5px] text-slate-400 font-mono">lab@medverify.com</p>
-                </button>
-              </div>
-            </div>
           </form>
         </div>
 

@@ -25,6 +25,8 @@ import {
   FileText,
   Clock,
   CheckCircle2,
+  XCircle,
+  AlertCircle,
   Plus,
   Eye,
   FileCheck,
@@ -88,13 +90,51 @@ export default function DashboardPage() {
 
   const getStatusBadge = (status: string, fitness: string) => {
     if (status === 'FINALIZED') {
-      if (fitness === 'FIT') return <Badge variant="fit">FIT (FINALIZED)</Badge>;
-      if (fitness === 'UNFIT') return <Badge variant="unfit">UNFIT (FINALIZED)</Badge>;
-      return <Badge variant="pending">FINALIZED ({fitness})</Badge>;
+      if (fitness === 'FIT') {
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300/90 shadow-2xs whitespace-nowrap">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />
+            <span>Fit</span>
+          </span>
+        );
+      }
+      if (fitness === 'UNFIT') {
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-300/90 shadow-2xs whitespace-nowrap">
+            <XCircle className="h-3.5 w-3.5 text-rose-600 flex-shrink-0" />
+            <span>Unfit</span>
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-300/90 shadow-2xs whitespace-nowrap">
+          <ShieldCheck className="h-3.5 w-3.5 text-sky-600 flex-shrink-0" />
+          <span>{fitness || 'Finalized'}</span>
+        </span>
+      );
     }
-    if (status === 'IN_REVIEW') return <Badge variant="pending">IN REVIEW</Badge>;
-    if (status === 'REVOKED') return <Badge variant="revoked">REVOKED</Badge>;
-    return <Badge variant="draft">DRAFT</Badge>;
+    if (status === 'IN_REVIEW') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-300/90 shadow-2xs whitespace-nowrap">
+          <Clock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+          <span>In Review</span>
+        </span>
+      );
+    }
+    if (status === 'REVOKED') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-300/90 shadow-2xs whitespace-nowrap">
+          <AlertCircle className="h-3.5 w-3.5 text-red-600 flex-shrink-0" />
+          <span>Revoked</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200/90 shadow-2xs whitespace-nowrap">
+        <FileText className="h-3 w-3 text-slate-500 flex-shrink-0" />
+        <span>Draft</span>
+      </span>
+    );
   };
 
   return (
